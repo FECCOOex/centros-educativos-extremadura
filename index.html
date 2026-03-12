@@ -47,7 +47,7 @@
     }
 
     .campaign-wrap{
-      max-width:1300px;
+      max-width:1400px;
       margin:18px auto 0;
       padding:0 16px;
     }
@@ -138,7 +138,7 @@
     }
 
     .page-wrap{
-      max-width:1300px;
+      max-width:1400px;
       margin:18px auto 40px;
       padding:0 16px;
     }
@@ -179,7 +179,7 @@
 
     .layout{
       display:grid;
-      grid-template-columns:320px 1fr;
+      grid-template-columns:320px 1fr 320px;
       gap:16px;
       align-items:start;
     }
@@ -282,12 +282,13 @@
       gap:6px;
     }
 
-    .legend-color{
-      width:12px;
-      height:12px;
-      border-radius:50%;
-      border:1px solid rgba(0,0,0,.15);
-      flex:0 0 12px;
+    .legend-swatch{
+      width:18px;
+      height:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      flex:0 0 18px;
     }
 
     .results-list{
@@ -342,14 +343,44 @@
       color:#555;
     }
 
-    .result-card-body a{
+    .result-card-body a,
+    .distance-result a{
       color:#d60000;
       text-decoration:none;
       word-break:break-word;
     }
 
-    .result-card-body a:hover{
+    .result-card-body a:hover,
+    .distance-result a:hover{
       text-decoration:underline;
+    }
+
+    .distance-help{
+      font-size:.88rem;
+      color:#666;
+      line-height:1.5;
+      margin-bottom:12px;
+    }
+
+    .distance-divider{
+      height:1px;
+      background:#eceff3;
+      margin:14px 0;
+    }
+
+    .distance-result{
+      margin-top:14px;
+      border:1px solid #eceff3;
+      border-radius:10px;
+      padding:12px;
+      background:#fafbfc;
+      font-size:.92rem;
+      line-height:1.6;
+      color:#555;
+    }
+
+    .distance-result strong{
+      color:#222;
     }
 
     .site-footer{
@@ -359,7 +390,7 @@
     }
 
     .footer-inner{
-      max-width:1300px;
+      max-width:1400px;
       margin:0 auto;
       padding:32px 16px 24px;
       display:grid;
@@ -406,6 +437,29 @@
       padding:14px 16px;
       font-size:.85rem;
       color:#cfcfcf;
+    }
+
+    .marker-wrap{
+      width:20px;
+      height:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .marker-svg{
+      overflow:visible;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,.25));
+    }
+
+    @media (max-width: 1200px){
+      .layout{
+        grid-template-columns:320px 1fr;
+      }
+
+      .distance-panel{
+        grid-column:1 / -1;
+      }
     }
 
     @media (max-width: 960px){
@@ -548,6 +602,50 @@
         <div id="map"></div>
         <div class="legend" id="mapLegend"></div>
       </section>
+
+      <aside class="panel distance-panel">
+        <h2>Distancias</h2>
+
+        <div class="distance-help">
+          Puedes calcular la distancia aproximada en kilómetros en línea recta entre dos municipios
+          o entre dos lugares concretos.
+        </div>
+
+        <div class="filter-group">
+          <label for="distanceMunicipioOrigen">Municipio de origen</label>
+          <select id="distanceMunicipioOrigen">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="distanceMunicipioDestino">Municipio de destino</label>
+          <select id="distanceMunicipioDestino">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+
+        <div class="distance-divider"></div>
+
+        <div class="filter-group">
+          <label for="distanceLugarOrigen">Lugar concreto de origen</label>
+          <input type="text" id="distanceLugarOrigen" placeholder="Ej.: Mérida, Plaza de España">
+        </div>
+
+        <div class="filter-group">
+          <label for="distanceLugarDestino">Lugar concreto de destino</label>
+          <input type="text" id="distanceLugarDestino" placeholder="Ej.: Badajoz, Avenida de Europa">
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn-primary" id="calculateDistanceBtn" type="button">Calcular distancia</button>
+          <button class="btn-secondary" id="clearDistanceBtn" type="button">Limpiar</button>
+        </div>
+
+        <div class="distance-result" id="distanceResult">
+          Introduce dos municipios o dos lugares concretos para calcular la distancia.
+        </div>
+      </aside>
     </div>
 
     <section class="panel results-panel">
@@ -609,6 +707,7 @@
     let filteredCenters = [];
     let map;
     let markersLayer;
+    let distanceLayer;
     let bannerIndex = 0;
     let bannerItems = [];
     let bannerTimer = null;
@@ -630,11 +729,17 @@
     const applyBtn = document.getElementById("applyBtn");
     const resetBtn = document.getElementById("resetBtn");
 
-    const palette = [
-      "#1f78b4", "#33a02c", "#e31a1c", "#ff7f00", "#6a3d9a", "#17a2b8",
-      "#b15928", "#f781bf", "#66a61e", "#a6761d", "#7570b3", "#d95f02",
-      "#1b9e77", "#e7298a", "#a6cee3", "#fb9a99", "#b2df8a", "#cab2d6"
-    ];
+    const distanceMunicipioOrigen = document.getElementById("distanceMunicipioOrigen");
+    const distanceMunicipioDestino = document.getElementById("distanceMunicipioDestino");
+    const distanceLugarOrigen = document.getElementById("distanceLugarOrigen");
+    const distanceLugarDestino = document.getElementById("distanceLugarDestino");
+    const calculateDistanceBtn = document.getElementById("calculateDistanceBtn");
+    const clearDistanceBtn = document.getElementById("clearDistanceBtn");
+    const distanceResult = document.getElementById("distanceResult");
+
+    const SHAPES = ["circle", "diamond", "square", "star"];
+    const typeStyleMap = new Map();
+    const municipalityCoords = new Map();
 
     function parseCSV(text) {
       let cleanText = text.replace(/\r/g, "").trim();
@@ -646,6 +751,31 @@
         header: true,
         skipEmptyLines: true
       }).data;
+    }
+
+    function normalizeKey(str) {
+      return String(str || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function getField(row, aliases) {
+      const normalized = {};
+      Object.keys(row || {}).forEach(key => {
+        normalized[normalizeKey(key)] = row[key];
+      });
+
+      for (const alias of aliases) {
+        const value = normalized[normalizeKey(alias)];
+        if (value !== undefined && value !== null && String(value).trim() !== "") {
+          return String(value).trim();
+        }
+      }
+      return "";
     }
 
     function uniqueSorted(values) {
@@ -698,25 +828,25 @@
     function centerToModel(row) {
       return {
         raw: row,
-        nombre: row.nombre || "",
-        codigo: row.codigo_centro || "",
-        titularidad: row.titularidad || "",
-        tipoCentro: row.tipo_centro || "",
-        etapas: row.etapas || "",
-        dificil: row["dificil_desempeño"] || row["dificil_desempeno"] || "",
-        zona: row.zona || "",
-        direccion: row.direccion || "",
-        cp: row.cp || "",
-        municipio: row.municipio || "",
-        provincia: row.provincia || "",
-        telefono: row.telefono || "",
-        fax: row.fax || "",
-        email: row.email || "",
-        web: row.web || "",
-        horario: row.horario || "",
-        jornadaPartida: row.jornada_partida || "",
-        lat: Number(String(row.lat || "").replace(",", ".")),
-        lng: Number(String(row.lng || "").replace(",", "."))
+        nombre: getField(row, ["nombre", "denominacion", "denominación", "centro"]),
+        codigo: getField(row, ["codigo_centro", "codigo", "código", "codigocentro"]),
+        titularidad: getField(row, ["titularidad"]),
+        tipoCentro: getField(row, ["tipo_centro", "tipocentro", "tipo"]),
+        etapas: getField(row, ["etapas", "ensenanzas", "enseñanzas"]),
+        dificil: getField(row, ["dificil_desempeño", "dificil_desempeno", "dificildesempeno"]),
+        zona: getField(row, ["zona"]),
+        direccion: getField(row, ["direccion", "dirección"]),
+        cp: getField(row, ["cp", "codigopostal"]),
+        municipio: getField(row, ["municipio", "localidad"]),
+        provincia: getField(row, ["provincia"]),
+        telefono: getField(row, ["telefono", "teléfono"]),
+        fax: getField(row, ["fax"]),
+        email: getField(row, ["email", "correo"]),
+        web: getField(row, ["web", "paginaweb", "páginaweb", "url"]),
+        horario: getField(row, ["horario"]),
+        jornadaPartida: getField(row, ["jornada_partida", "jornadapartida"]),
+        lat: Number(String(getField(row, ["lat", "latitude", "latitud"])).replace(",", ".")),
+        lng: Number(String(getField(row, ["lng", "lon", "longitud", "longitude"])).replace(",", "."))
       };
     }
 
@@ -728,6 +858,53 @@
       fillSelect(zonaFilter, uniqueSorted(data.map(d => d.zona)));
       fillSelect(municipioFilter, uniqueSorted(data.map(d => d.municipio)));
       fillSelect(provinciaFilter, uniqueSorted(data.map(d => d.provincia)));
+
+      const municipalities = uniqueSorted(data.map(d => d.municipio));
+      fillSelect(distanceMunicipioOrigen, municipalities);
+      fillSelect(distanceMunicipioDestino, municipalities);
+    }
+
+    function buildMunicipalityCoords(data) {
+      municipalityCoords.clear();
+
+      const grouped = {};
+      data.forEach(center => {
+        if (!center.municipio || Number.isNaN(center.lat) || Number.isNaN(center.lng)) return;
+        const key = center.municipio;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push([center.lat, center.lng]);
+      });
+
+      Object.entries(grouped).forEach(([municipio, coords]) => {
+        const avgLat = coords.reduce((s, c) => s + c[0], 0) / coords.length;
+        const avgLng = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+        municipalityCoords.set(municipio, { lat: avgLat, lng: avgLng });
+      });
+    }
+
+    function buildTypeStyles(data) {
+      typeStyleMap.clear();
+      const types = uniqueSorted(data.map(d => d.tipoCentro));
+
+      types.forEach((type, index) => {
+        const hue = (index * 137.508) % 360;
+        const color = `hsl(${hue} 70% 48%)`;
+        const shape = SHAPES[index % SHAPES.length];
+        typeStyleMap.set(type || "Sin tipo", { color, shape });
+      });
+    }
+
+    function getCenterStyle(tipo) {
+      const key = tipo || "Sin tipo";
+      if (!typeStyleMap.has(key)) {
+        const index = typeStyleMap.size;
+        const hue = (index * 137.508) % 360;
+        typeStyleMap.set(key, {
+          color: `hsl(${hue} 70% 48%)`,
+          shape: SHAPES[index % SHAPES.length]
+        });
+      }
+      return typeStyleMap.get(key);
     }
 
     function hasAnyFilterSelected() {
@@ -778,28 +955,60 @@
       );
     }
 
-    function getCenterColor(tipo) {
-      const t = String(tipo || "").trim().toLowerCase();
-      let hash = 0;
-      for (let i = 0; i < t.length; i++) {
-        hash = ((hash << 5) - hash) + t.charCodeAt(i);
-        hash |= 0;
+    function shapeSvg(shape, color) {
+      const stroke = "#ffffff";
+      if (shape === "circle") {
+        return `
+          <svg class="marker-svg" width="20" height="20" viewBox="0 0 20 20">
+            <circle cx="10" cy="10" r="7" fill="${color}" stroke="${stroke}" stroke-width="2"></circle>
+          </svg>
+        `;
       }
-      return palette[Math.abs(hash) % palette.length];
+      if (shape === "square") {
+        return `
+          <svg class="marker-svg" width="20" height="20" viewBox="0 0 20 20">
+            <rect x="4" y="4" width="12" height="12" rx="1" fill="${color}" stroke="${stroke}" stroke-width="2"></rect>
+          </svg>
+        `;
+      }
+      if (shape === "diamond") {
+        return `
+          <svg class="marker-svg" width="20" height="20" viewBox="0 0 20 20">
+            <polygon points="10,2 18,10 10,18 2,10" fill="${color}" stroke="${stroke}" stroke-width="2"></polygon>
+          </svg>
+        `;
+      }
+      return `
+        <svg class="marker-svg" width="22" height="22" viewBox="0 0 22 22">
+          <path d="M11 2 L12.7 7.3 L18.3 7.3 L13.8 10.6 L15.5 16 L11 12.7 L6.5 16 L8.2 10.6 L3.7 7.3 L9.3 7.3 Z"
+                fill="${color}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"></path>
+        </svg>
+      `;
+    }
+
+    function makeMarkerIcon(tipo) {
+      const style = getCenterStyle(tipo);
+      return L.divIcon({
+        className: "",
+        html: `<div class="marker-wrap">${shapeSvg(style.shape, style.color)}</div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -8]
+      });
     }
 
     function buildLegend(data) {
       mapLegend.innerHTML = "";
-
       if (!hasAppliedFilters || !data.length) return;
 
-      const uniqueTypes = uniqueSorted(data.map(d => d.tipoCentro));
+      const uniqueTypes = uniqueSorted(data.map(d => d.tipoCentro || "Sin tipo"));
       uniqueTypes.forEach(type => {
+        const style = getCenterStyle(type);
         const item = document.createElement("div");
         item.className = "legend-item";
         item.innerHTML = `
-          <span class="legend-color" style="background:${getCenterColor(type)};"></span>
-          <span>${escapeHtml(type || "Sin tipo")}</span>
+          <span class="legend-swatch">${shapeSvg(style.shape, style.color)}</span>
+          <span>${escapeHtml(type)}</span>
         `;
         mapLegend.appendChild(item);
       });
@@ -873,13 +1082,14 @@
         const card = document.createElement("div");
         card.className = "result-card";
 
+        const displayName = center.nombre || center.codigo || "Centro sin nombre";
         const webHtml = center.web
           ? `<a href="${escapeHtml(center.web)}" target="_blank" rel="noopener noreferrer">${escapeHtml(center.web)}</a>`
           : "-";
 
         card.innerHTML = `
           <div class="result-card-head">
-            <div class="result-card-title">${escapeHtml(center.nombre || "Centro educativo")}</div>
+            <div class="result-card-title">${escapeHtml(displayName)}</div>
           </div>
           <div class="result-card-body">
             <strong>Código del centro:</strong> ${escapeHtml(center.codigo || "-")}<br>
@@ -922,13 +1132,8 @@
       data.forEach(center => {
         if (Number.isNaN(center.lat) || Number.isNaN(center.lng)) return;
 
-        const marker = L.circleMarker([center.lat, center.lng], {
-          radius: 7,
-          fillColor: getCenterColor(center.tipoCentro),
-          color: "#ffffff",
-          weight: 1.5,
-          opacity: 1,
-          fillOpacity: 0.9
+        const marker = L.marker([center.lat, center.lng], {
+          icon: makeMarkerIcon(center.tipoCentro)
         });
 
         marker.bindPopup(popupHtml(center));
@@ -979,6 +1184,11 @@
       }).addTo(map);
 
       markersLayer = L.layerGroup().addTo(map);
+      distanceLayer = L.layerGroup().addTo(map);
+    }
+
+    function clearDistanceOverlay() {
+      distanceLayer.clearLayers();
     }
 
     function applyBannerPosition() {
@@ -1097,8 +1307,10 @@
         complete: function(results) {
           allCenters = results.data
             .map(centerToModel)
-            .filter(c => c.nombre || c.codigo);
+            .filter(c => c.nombre || c.codigo || c.municipio || c.tipoCentro);
 
+          buildTypeStyles(allCenters);
+          buildMunicipalityCoords(allCenters);
           populateFilters(allCenters);
           updateSummary([]);
           renderList([]);
@@ -1117,6 +1329,129 @@
           `;
         }
       });
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const toRad = deg => deg * Math.PI / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    async function geocodePlace(query) {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`;
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
+      if (!response.ok) throw new Error("No se pudo geocodificar el lugar.");
+      const data = await response.json();
+      if (!data.length) throw new Error(`No se encontró: ${query}`);
+      return {
+        label: query,
+        lat: Number(data[0].lat),
+        lng: Number(data[0].lon)
+      };
+    }
+
+    function municipalityPoint(name) {
+      if (!name || !municipalityCoords.has(name)) return null;
+      const p = municipalityCoords.get(name);
+      return {
+        label: name,
+        lat: p.lat,
+        lng: p.lng
+      };
+    }
+
+    function drawDistanceOverlay(origin, destination) {
+      clearDistanceOverlay();
+
+      const originMarker = L.circleMarker([origin.lat, origin.lng], {
+        radius: 7,
+        fillColor: "#2e7d32",
+        color: "#ffffff",
+        weight: 2,
+        fillOpacity: 1
+      }).bindPopup(`Origen: ${escapeHtml(origin.label)}`);
+
+      const destinationMarker = L.circleMarker([destination.lat, destination.lng], {
+        radius: 7,
+        fillColor: "#c62828",
+        color: "#ffffff",
+        weight: 2,
+        fillOpacity: 1
+      }).bindPopup(`Destino: ${escapeHtml(destination.label)}`);
+
+      const line = L.polyline(
+        [[origin.lat, origin.lng], [destination.lat, destination.lng]],
+        { color: "#444", weight: 3, dashArray: "6,6" }
+      );
+
+      originMarker.addTo(distanceLayer);
+      destinationMarker.addTo(distanceLayer);
+      line.addTo(distanceLayer);
+
+      map.fitBounds(line.getBounds(), { padding: [40, 40] });
+    }
+
+    async function calculateDistance() {
+      try {
+        distanceResult.innerHTML = "Calculando…";
+
+        const textOrigin = distanceLugarOrigen.value.trim();
+        const textDestination = distanceLugarDestino.value.trim();
+        const munOrigin = distanceMunicipioOrigen.value;
+        const munDestination = distanceMunicipioDestino.value;
+
+        let origin = null;
+        let destination = null;
+
+        if (textOrigin) {
+          origin = await geocodePlace(textOrigin);
+        } else if (munOrigin) {
+          origin = municipalityPoint(munOrigin);
+        }
+
+        if (textDestination) {
+          destination = await geocodePlace(textDestination);
+        } else if (munDestination) {
+          destination = municipalityPoint(munDestination);
+        }
+
+        if (!origin || !destination) {
+          distanceResult.innerHTML = "Debes indicar origen y destino, ya sea por municipio o por lugar concreto.";
+          return;
+        }
+
+        const km = haversineKm(origin.lat, origin.lng, destination.lat, destination.lng);
+        drawDistanceOverlay(origin, destination);
+
+        distanceResult.innerHTML = `
+          <strong>Distancia aproximada:</strong> ${km.toFixed(2)} km<br>
+          <strong>Origen:</strong> ${escapeHtml(origin.label)} (${origin.lat.toFixed(5)}, ${origin.lng.toFixed(5)})<br>
+          <strong>Destino:</strong> ${escapeHtml(destination.label)} (${destination.lat.toFixed(5)}, ${destination.lng.toFixed(5)})<br>
+          <strong>Tipo de cálculo:</strong> distancia en línea recta
+        `;
+      } catch (error) {
+        console.error(error);
+        distanceResult.innerHTML = `Error al calcular la distancia: ${escapeHtml(error.message || "Error desconocido")}`;
+      }
+    }
+
+    function resetDistance() {
+      distanceMunicipioOrigen.value = "";
+      distanceMunicipioDestino.value = "";
+      distanceLugarOrigen.value = "";
+      distanceLugarDestino.value = "";
+      clearDistanceOverlay();
+      distanceResult.innerHTML = "Introduce dos municipios o dos lugares concretos para calcular la distancia.";
     }
 
     applyBtn.addEventListener("click", applyFilters);
@@ -1144,6 +1479,9 @@
     searchCodigo.addEventListener("keydown", (e) => {
       if (e.key === "Enter") applyFilters();
     });
+
+    calculateDistanceBtn.addEventListener("click", calculateDistance);
+    clearDistanceBtn.addEventListener("click", resetDistance);
 
     document.getElementById("campaignCarousel").addEventListener("mouseenter", stopBannerAuto);
     document.getElementById("campaignCarousel").addEventListener("mouseleave", () => {
