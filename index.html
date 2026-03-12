@@ -442,20 +442,20 @@
     }
 
     .symbol-marker{
-      width:24px;
-      height:24px;
+      width:26px;
+      height:26px;
       display:flex;
       align-items:center;
       justify-content:center;
       font-size:22px;
       font-weight:700;
       line-height:1;
+      transform:translateY(-2px);
       text-shadow:
         -1px -1px 0 #ffffff,
          1px -1px 0 #ffffff,
         -1px  1px 0 #ffffff,
          1px  1px 0 #ffffff;
-      transform: translateY(-2px);
     }
 
     @media (max-width: 1200px){
@@ -834,7 +834,15 @@
     function centerToModel(row) {
       return {
         raw: row,
-        nombre: getField(row, ["nombre", "denominacion", "denominación", "centro", "nombrecentro"]),
+        nombre: getField(row, [
+          "nombre del centro",
+          "nombredelcentro",
+          "nombre",
+          "denominacion",
+          "denominación",
+          "centro",
+          "nombrecentro"
+        ]),
         codigo: getField(row, ["codigo_centro", "codigo", "código", "codigocentro"]),
         titularidad: getField(row, ["titularidad"]),
         tipoCentro: getField(row, ["tipo_centro", "tipocentro", "tipo"]),
@@ -893,7 +901,7 @@
 
       types.forEach((type, index) => {
         const hue = (index * 137.508) % 360;
-        const color = `hsl(${hue} 72% 45%)`;
+        const color = `hsl(${hue} 78% 42%)`;
         const symbol = SYMBOLS[index % SYMBOLS.length];
         typeStyleMap.set(type, { color, symbol });
       });
@@ -905,7 +913,7 @@
         const index = typeStyleMap.size;
         const hue = (index * 137.508) % 360;
         typeStyleMap.set(key, {
-          color: `hsl(${hue} 72% 45%)`,
+          color: `hsl(${hue} 78% 42%)`,
           symbol: SYMBOLS[index % SYMBOLS.length]
         });
       }
@@ -962,11 +970,12 @@
 
     function makeMarkerIcon(tipo) {
       const style = getCenterStyle(tipo);
+
       return L.divIcon({
         className: "custom-symbol-marker",
         html: `<div class="symbol-marker" style="color:${style.color};">${style.symbol}</div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
         popupAnchor: [0, -8]
       });
     }
@@ -1308,11 +1317,18 @@
     }
 
     async function geocodePlace(query) {
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`;
-      const response = await fetch(url, { headers: { "Accept": "application/json" } });
+      const boundedQuery = `${query}, Extremadura, España`;
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=es&q=${encodeURIComponent(boundedQuery)}`;
+
+      const response = await fetch(url, {
+        headers: { "Accept": "application/json" }
+      });
+
       if (!response.ok) throw new Error("No se pudo localizar el lugar.");
+
       const data = await response.json();
       if (!data.length) throw new Error(`No se encontró: ${query}`);
+
       return {
         label: query,
         lat: Number(data[0].lat),
@@ -1332,10 +1348,15 @@
 
     async function getRoadDistance(origin, destination) {
       const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+
       const response = await fetch(url);
       if (!response.ok) throw new Error("No se pudo consultar la ruta por carretera.");
+
       const data = await response.json();
-      if (!data.routes || !data.routes.length) throw new Error("No se encontró una ruta por carretera.");
+      if (!data.routes || !data.routes.length) {
+        throw new Error("No se encontró una ruta por carretera.");
+      }
+
       return data.routes[0];
     }
 
