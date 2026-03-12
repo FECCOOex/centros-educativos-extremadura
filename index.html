@@ -198,14 +198,6 @@
       color:#d60000;
     }
 
-    .filters-panel{
-      min-height:100%;
-    }
-
-    .map-panel{
-      min-height:100%;
-    }
-
     .results-panel{
       margin-top:16px;
     }
@@ -477,12 +469,12 @@
 
   <main class="page-wrap">
     <div class="toolbar">
-      <div class="summary" id="summaryBox">Cargando centros…</div>
+      <div class="summary" id="summaryBox">Selecciona uno o varios filtros y pulsa “Aplicar filtros”.</div>
       <a class="delegados-btn" href="delegados.html">Área delegados/as</a>
     </div>
 
     <div class="layout">
-      <aside class="panel filters-panel">
+      <aside class="panel">
         <h2>Filtros</h2>
 
         <div class="filters">
@@ -552,7 +544,7 @@
         </div>
       </aside>
 
-      <section class="panel map-panel">
+      <section class="panel">
         <div id="map"></div>
         <div class="legend" id="mapLegend"></div>
       </section>
@@ -620,6 +612,7 @@
     let bannerIndex = 0;
     let bannerItems = [];
     let bannerTimer = null;
+    let hasAppliedFilters = false;
 
     const summaryBox = document.getElementById("summaryBox");
     const resultsList = document.getElementById("resultsList");
@@ -637,56 +630,22 @@
     const applyBtn = document.getElementById("applyBtn");
     const resetBtn = document.getElementById("resetBtn");
 
-    function splitCSVLine(line) {
-      const out = [];
-      let cur = "";
-      let inQ = false;
-
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-
-        if (ch === '"' && line[i + 1] === '"') {
-          cur += '"';
-          i++;
-          continue;
-        }
-
-        if (ch === '"') {
-          inQ = !inQ;
-          continue;
-        }
-
-        if (ch === "," && !inQ) {
-          out.push(cur);
-          cur = "";
-          continue;
-        }
-
-        cur += ch;
-      }
-
-      out.push(cur);
-      return out;
-    }
+    const palette = [
+      "#1f78b4", "#33a02c", "#e31a1c", "#ff7f00", "#6a3d9a", "#17a2b8",
+      "#b15928", "#f781bf", "#66a61e", "#a6761d", "#7570b3", "#d95f02",
+      "#1b9e77", "#e7298a", "#a6cee3", "#fb9a99", "#b2df8a", "#cab2d6"
+    ];
 
     function parseCSV(text) {
       let cleanText = text.replace(/\r/g, "").trim();
-
       if (cleanText.includes("\\n") && cleanText.split("\n").length === 1) {
         cleanText = cleanText.replace(/\\n/g, "\n");
       }
 
-      const lines = cleanText.split("\n").filter(l => l.trim() !== "");
-      if (!lines.length) return [];
-
-      const headers = splitCSVLine(lines[0]).map(h => h.trim());
-
-      return lines.slice(1).map(line => {
-        const cols = splitCSVLine(line);
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = (cols[i] ?? "").trim());
-        return obj;
-      });
+      return Papa.parse(cleanText, {
+        header: true,
+        skipEmptyLines: true
+      }).data;
     }
 
     function uniqueSorted(values) {
@@ -771,6 +730,20 @@
       fillSelect(provinciaFilter, uniqueSorted(data.map(d => d.provincia)));
     }
 
+    function hasAnyFilterSelected() {
+      return Boolean(
+        searchNombre.value.trim() ||
+        searchCodigo.value.trim() ||
+        titularidadFilter.value ||
+        tipoCentroFilter.value ||
+        etapasFilter.value ||
+        dificilFilter.value ||
+        zonaFilter.value ||
+        municipioFilter.value ||
+        provinciaFilter.value
+      );
+    }
+
     function matchesFilter(center) {
       const nombre = searchNombre.value.trim().toLowerCase();
       const codigo = searchCodigo.value.trim().toLowerCase();
@@ -806,26 +779,21 @@
     }
 
     function getCenterColor(tipo) {
-      const t = (tipo || "").toLowerCase();
-
-      if (t.includes("colegio rural agrupado")) return "#8e44ad";
-      if (t.includes("instituto")) return "#1f78b4";
-      if (t.includes("colegio de educación infantil y primaria")) return "#33a02c";
-      if (t.includes("centro de educación infantil")) return "#ff7f00";
-      if (t.includes("conservatorio")) return "#e31a1c";
-      if (t.includes("escuela oficial de idiomas")) return "#17a2b8";
-      if (t.includes("centro de profesores")) return "#6c757d";
-      if (t.includes("aula de educación de personas adultas")) return "#b15928";
-      if (t.includes("equipo")) return "#f781bf";
-      if (t.includes("residencia")) return "#a65628";
-
-      return "#d60000";
+      const t = String(tipo || "").trim().toLowerCase();
+      let hash = 0;
+      for (let i = 0; i < t.length; i++) {
+        hash = ((hash << 5) - hash) + t.charCodeAt(i);
+        hash |= 0;
+      }
+      return palette[Math.abs(hash) % palette.length];
     }
 
     function buildLegend(data) {
-      const uniqueTypes = uniqueSorted(data.map(d => d.tipoCentro));
       mapLegend.innerHTML = "";
 
+      if (!hasAppliedFilters || !data.length) return;
+
+      const uniqueTypes = uniqueSorted(data.map(d => d.tipoCentro));
       uniqueTypes.forEach(type => {
         const item = document.createElement("div");
         item.className = "legend-item";
@@ -867,6 +835,22 @@
 
       const header = document.createElement("div");
       header.className = "results-header";
+
+      if (!hasAppliedFilters) {
+        header.textContent = "Resultados";
+        resultsList.appendChild(header);
+
+        const empty = document.createElement("div");
+        empty.className = "result-card";
+        empty.innerHTML = `
+          <div class="result-card-body">
+            El mapa y el listado aparecerán cuando apliques uno o varios filtros.
+          </div>
+        `;
+        resultsList.appendChild(empty);
+        return;
+      }
+
       header.textContent = `Resultados (${data.length})`;
       resultsList.appendChild(header);
 
@@ -925,6 +909,12 @@
       resultsList.appendChild(grid);
     }
 
+    function clearMap() {
+      markersLayer.clearLayers();
+      map.setView([39.0, -6.0], 8);
+      mapLegend.innerHTML = "";
+    }
+
     function renderMarkers(data) {
       markersLayer.clearLayers();
       const bounds = [];
@@ -954,15 +944,30 @@
     }
 
     function updateSummary(data) {
+      if (!hasAppliedFilters) {
+        summaryBox.textContent = `Datos cargados: ${allCenters.length} centros disponibles. Selecciona uno o varios filtros y pulsa “Aplicar filtros”.`;
+        return;
+      }
       summaryBox.textContent = `${data.length} centros mostrados de ${allCenters.length}`;
     }
 
     function applyFilters() {
+      hasAppliedFilters = true;
+
+      if (!hasAnyFilterSelected()) {
+        filteredCenters = [];
+        clearMap();
+        updateSummary(filteredCenters);
+        renderList(filteredCenters);
+        buildLegend(filteredCenters);
+        return;
+      }
+
       filteredCenters = allCenters.filter(matchesFilter);
       updateSummary(filteredCenters);
       renderMarkers(filteredCenters);
       renderList(filteredCenters);
-      buildLegend(filteredCenters.length ? filteredCenters : allCenters);
+      buildLegend(filteredCenters);
     }
 
     function initMap() {
@@ -1043,8 +1048,8 @@
       elEmpty.style.display = "none";
       elTrack.style.display = "flex";
       elDots.style.display = multi ? "flex" : "none";
-      btnPrev.style.display = multi ? "flex" : "flex";
-      btnNext.style.display = multi ? "flex" : "flex";
+      btnPrev.style.display = "flex";
+      btnNext.style.display = "flex";
 
       btnPrev.onclick = () => goToBanner(bannerIndex - 1, true);
       btnNext.onclick = () => goToBanner(bannerIndex + 1, true);
@@ -1095,7 +1100,9 @@
             .filter(c => c.nombre || c.codigo);
 
           populateFilters(allCenters);
-          applyFilters();
+          updateSummary([]);
+          renderList([]);
+          clearMap();
         },
         error: function(err) {
           console.error(err);
@@ -1115,6 +1122,7 @@
     applyBtn.addEventListener("click", applyFilters);
 
     resetBtn.addEventListener("click", () => {
+      hasAppliedFilters = false;
       searchNombre.value = "";
       searchCodigo.value = "";
       titularidadFilter.value = "";
@@ -1124,7 +1132,9 @@
       zonaFilter.value = "";
       municipioFilter.value = "";
       provinciaFilter.value = "";
-      applyFilters();
+      clearMap();
+      updateSummary([]);
+      renderList([]);
     });
 
     searchNombre.addEventListener("keydown", (e) => {
