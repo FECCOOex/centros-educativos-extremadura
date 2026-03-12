@@ -198,6 +198,18 @@
       color:#d60000;
     }
 
+    .filters-panel{
+      min-height:100%;
+    }
+
+    .map-panel{
+      min-height:100%;
+    }
+
+    .results-panel{
+      margin-top:16px;
+    }
+
     .filters{
       display:grid;
       gap:12px;
@@ -263,47 +275,88 @@
       overflow:hidden;
     }
 
+    .legend{
+      margin-top:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      font-size:.84rem;
+      color:#555;
+    }
+
+    .legend-item{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .legend-color{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      border:1px solid rgba(0,0,0,.15);
+      flex:0 0 12px;
+    }
+
     .results-list{
-      margin-top:20px;
-      max-height:none;
-      overflow:visible;
-      border-top:1px solid #eceff3;
-      padding-top:16px;
+      margin-top:0;
+      border-top:none;
+      padding-top:0;
     }
 
     .results-header{
-      font-size:1rem;
+      font-size:1.05rem;
       font-weight:700;
-      margin-bottom:12px;
+      margin-bottom:16px;
       color:#222;
     }
 
-    .result-item{
-      padding:16px 0;
-      border-bottom:1px solid #f0f2f5;
-      font-size:.92rem;
+    .results-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+      gap:16px;
+    }
+
+    .result-card{
+      border:1px solid #e6eaf0;
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 2px 6px rgba(0,0,0,.05);
+      overflow:hidden;
       cursor:pointer;
     }
 
-    .result-item strong.result-title{
-      display:block;
-      margin-bottom:8px;
-      color:#222;
+    .result-card:hover{
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
+    }
+
+    .result-card-head{
+      background:#f8f9fb;
+      border-bottom:1px solid #eceff3;
+      padding:14px 16px;
+    }
+
+    .result-card-title{
+      margin:0;
       font-size:1rem;
+      font-weight:700;
+      color:#222;
     }
 
-    .result-meta{
-      color:#666;
-      line-height:1.6;
+    .result-card-body{
+      padding:14px 16px;
+      font-size:.92rem;
+      line-height:1.65;
+      color:#555;
     }
 
-    .result-meta a{
+    .result-card-body a{
       color:#d60000;
       text-decoration:none;
       word-break:break-word;
     }
 
-    .result-meta a:hover{
+    .result-card-body a:hover{
       text-decoration:underline;
     }
 
@@ -429,7 +482,7 @@
     </div>
 
     <div class="layout">
-      <aside class="panel">
+      <aside class="panel filters-panel">
         <h2>Filtros</h2>
 
         <div class="filters">
@@ -499,11 +552,15 @@
         </div>
       </aside>
 
-      <section class="panel">
+      <section class="panel map-panel">
         <div id="map"></div>
-        <div class="results-list" id="resultsList"></div>
+        <div class="legend" id="mapLegend"></div>
       </section>
     </div>
+
+    <section class="panel results-panel">
+      <div class="results-list" id="resultsList"></div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -550,6 +607,7 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
     const BANNERS_CSV = "banners.csv";
@@ -565,6 +623,7 @@
 
     const summaryBox = document.getElementById("summaryBox");
     const resultsList = document.getElementById("resultsList");
+    const mapLegend = document.getElementById("mapLegend");
 
     const searchNombre = document.getElementById("searchNombre");
     const searchCodigo = document.getElementById("searchCodigo");
@@ -613,10 +672,7 @@
     function parseCSV(text) {
       let cleanText = text.replace(/\r/g, "").trim();
 
-      if (
-        cleanText.includes("\\n") &&
-        cleanText.split("\n").length === 1
-      ) {
+      if (cleanText.includes("\\n") && cleanText.split("\n").length === 1) {
         cleanText = cleanText.replace(/\\n/g, "\n");
       }
 
@@ -749,6 +805,38 @@
       );
     }
 
+    function getCenterColor(tipo) {
+      const t = (tipo || "").toLowerCase();
+
+      if (t.includes("colegio rural agrupado")) return "#8e44ad";
+      if (t.includes("instituto")) return "#1f78b4";
+      if (t.includes("colegio de educación infantil y primaria")) return "#33a02c";
+      if (t.includes("centro de educación infantil")) return "#ff7f00";
+      if (t.includes("conservatorio")) return "#e31a1c";
+      if (t.includes("escuela oficial de idiomas")) return "#17a2b8";
+      if (t.includes("centro de profesores")) return "#6c757d";
+      if (t.includes("aula de educación de personas adultas")) return "#b15928";
+      if (t.includes("equipo")) return "#f781bf";
+      if (t.includes("residencia")) return "#a65628";
+
+      return "#d60000";
+    }
+
+    function buildLegend(data) {
+      const uniqueTypes = uniqueSorted(data.map(d => d.tipoCentro));
+      mapLegend.innerHTML = "";
+
+      uniqueTypes.forEach(type => {
+        const item = document.createElement("div");
+        item.className = "legend-item";
+        item.innerHTML = `
+          <span class="legend-color" style="background:${getCenterColor(type)};"></span>
+          <span>${escapeHtml(type || "Sin tipo")}</span>
+        `;
+        mapLegend.appendChild(item);
+      });
+    }
+
     function popupHtml(center) {
       const webHtml = center.web
         ? `<div><strong>Web:</strong> <a href="${escapeHtml(center.web)}" target="_blank" rel="noopener noreferrer">${escapeHtml(center.web)}</a></div>`
@@ -779,15 +867,14 @@
 
       const header = document.createElement("div");
       header.className = "results-header";
-      header.textContent = "Resultados";
+      header.textContent = `Resultados (${data.length})`;
       resultsList.appendChild(header);
 
       if (!data.length) {
         const empty = document.createElement("div");
-        empty.className = "result-item";
+        empty.className = "result-card";
         empty.innerHTML = `
-          <strong class="result-title">Sin resultados</strong>
-          <div class="result-meta">
+          <div class="result-card-body">
             No hay centros que coincidan con los filtros aplicados.
           </div>
         `;
@@ -795,17 +882,22 @@
         return;
       }
 
+      const grid = document.createElement("div");
+      grid.className = "results-grid";
+
       data.forEach(center => {
-        const div = document.createElement("div");
-        div.className = "result-item";
+        const card = document.createElement("div");
+        card.className = "result-card";
 
         const webHtml = center.web
           ? `<a href="${escapeHtml(center.web)}" target="_blank" rel="noopener noreferrer">${escapeHtml(center.web)}</a>`
           : "-";
 
-        div.innerHTML = `
-          <strong class="result-title">${escapeHtml(center.nombre || "Centro educativo")}</strong>
-          <div class="result-meta">
+        card.innerHTML = `
+          <div class="result-card-head">
+            <div class="result-card-title">${escapeHtml(center.nombre || "Centro educativo")}</div>
+          </div>
+          <div class="result-card-body">
             <strong>Código del centro:</strong> ${escapeHtml(center.codigo || "-")}<br>
             <strong>Titularidad:</strong> ${escapeHtml(center.titularidad || "-")}<br>
             <strong>Tipo de centro:</strong> ${escapeHtml(center.tipoCentro || "-")}<br>
@@ -821,14 +913,16 @@
           </div>
         `;
 
-        div.addEventListener("click", () => {
+        card.addEventListener("click", () => {
           if (!Number.isNaN(center.lat) && !Number.isNaN(center.lng)) {
             map.setView([center.lat, center.lng], 14);
           }
         });
 
-        resultsList.appendChild(div);
+        grid.appendChild(card);
       });
+
+      resultsList.appendChild(grid);
     }
 
     function renderMarkers(data) {
@@ -838,7 +932,15 @@
       data.forEach(center => {
         if (Number.isNaN(center.lat) || Number.isNaN(center.lng)) return;
 
-        const marker = L.marker([center.lat, center.lng]);
+        const marker = L.circleMarker([center.lat, center.lng], {
+          radius: 7,
+          fillColor: getCenterColor(center.tipoCentro),
+          color: "#ffffff",
+          weight: 1.5,
+          opacity: 1,
+          fillOpacity: 0.9
+        });
+
         marker.bindPopup(popupHtml(center));
         marker.addTo(markersLayer);
         bounds.push([center.lat, center.lng]);
@@ -860,6 +962,7 @@
       updateSummary(filteredCenters);
       renderMarkers(filteredCenters);
       renderList(filteredCenters);
+      buildLegend(filteredCenters.length ? filteredCenters : allCenters);
     }
 
     function initMap() {
@@ -982,30 +1085,31 @@
     }
 
     function loadCenters() {
-      fetch(CENTROS_CSV + "?v=" + Date.now())
-        .then(r => {
-          if (!r.ok) throw new Error("No se pudo cargar centros.csv");
-          return r.text();
-        })
-        .then(text => {
-          const rows = parseCSV(text);
-          allCenters = rows.map(centerToModel);
+      Papa.parse(CENTROS_CSV + "?v=" + Date.now(), {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          allCenters = results.data
+            .map(centerToModel)
+            .filter(c => c.nombre || c.codigo);
+
           populateFilters(allCenters);
           applyFilters();
-        })
-        .catch(err => {
+        },
+        error: function(err) {
           console.error(err);
           summaryBox.textContent = "Error al cargar centros.csv";
           resultsList.innerHTML = `
             <div class="results-header">Resultados</div>
-            <div class="result-item">
-              <strong class="result-title">Error</strong>
-              <div class="result-meta">
-                Revisa que centros.csv esté en la raíz del repositorio y que incluya lat y lng.
+            <div class="result-card">
+              <div class="result-card-body">
+                No se ha podido leer correctamente el archivo centros.csv.
               </div>
             </div>
           `;
-        });
+        }
+      });
     }
 
     applyBtn.addEventListener("click", applyFilters);
