@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Centros Educativos de Extremadura</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:#f3f4f6;
+      color:#222;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      padding:14px 24px;
+      background:#d60000;
+      color:#fff;
+      box-shadow:0 2px 6px rgba(0,0,0,.25);
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+
+    header img{
+      height:52px;
+      margin-right:14px;
+    }
+
+    header h1{
+      margin:0;
+      font-size:1.6rem;
+      font-weight:700;
+      line-height:1.2;
+    }
+
+    .campaign-wrap{
+      max-width:1300px;
+      margin:18px auto 0;
+      padding:0 16px;
+    }
+
+    .carousel{
+      background:#fff;
+      border:1px solid #e1e4ea;
+      border-radius:12px;
+      box-shadow:0 3px 8px rgba(0,0,0,.08);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .carousel-track{
+      display:flex;
+      transition:transform .35s ease;
+      will-change:transform;
+    }
+
+    .slide{
+      min-width:100%;
+      background:#fff;
+    }
+
+    .slide a{
+      display:block;
+      text-decoration:none;
+      color:inherit;
+    }
+
+    .slide img{
+      width:100%;
+      max-height:260px;
+      object-fit:contain;
+      display:block;
+      background:#fff;
+    }
+
+    .carousel-btn{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      border:none;
+      background:rgba(0,0,0,.35);
+      color:#fff;
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      cursor:pointer;
+      z-index:5;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .carousel-btn.prev{ left:10px; }
+    .carousel-btn.next{ right:10px; }
+
+    .dots{
+      position:absolute;
+      bottom:10px;
+      left:0;
+      right:0;
+      display:flex;
+      justify-content:center;
+      gap:8px;
+      z-index:5;
+    }
+
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.9);
+      cursor:pointer;
+    }
+
+    .dot.active{
+      background:#d60000;
+    }
+
+    .carousel-empty{
+      padding:18px 16px;
+      color:#555;
+      font-size:.95rem;
+    }
+
+    .page-wrap{
+      max-width:1300px;
+      margin:18px auto 40px;
+      padding:0 16px;
+    }
+
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+
+    .delegados-btn{
+      display:inline-block;
+      background:#d60000;
+      color:#fff;
+      text-decoration:none;
+      font-weight:700;
+      padding:10px 16px;
+      border-radius:999px;
+      box-shadow:0 2px 6px rgba(214,0,0,.25);
+    }
+
+    .delegados-btn:hover{
+      background:#b90000;
+    }
+
+    .summary{
+      font-size:.95rem;
+      color:#555;
+      background:#fff;
+      border:1px solid #e1e4ea;
+      border-radius:10px;
+      padding:10px 14px;
+      box-shadow:0 2px 6px rgba(0,0,0,.05);
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:320px 1fr;
+      gap:16px;
+      align-items:start;
+    }
+
+    .panel{
+      background:#fff;
+      border:1px solid #e1e4ea;
+      border-radius:12px;
+      box-shadow:0 3px 8px rgba(0,0,0,.08);
+      padding:16px;
+    }
+
+    .panel h2{
+      margin:0 0 14px;
+      font-size:1.05rem;
+      color:#d60000;
+    }
+
+    .filters{
+      display:grid;
+      gap:12px;
+    }
+
+    .filter-group label{
+      display:block;
+      font-size:.88rem;
+      font-weight:600;
+      margin-bottom:6px;
+      color:#444;
+    }
+
+    .filter-group input,
+    .filter-group select{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #cfd5dd;
+      border-radius:8px;
+      font-size:.95rem;
+      background:#fff;
+    }
+
+    .filter-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      padding-top:6px;
+    }
+
+    .btn-secondary,
+    .btn-primary{
+      border:none;
+      border-radius:8px;
+      padding:10px 12px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .btn-primary{
+      background:#d60000;
+      color:#fff;
+    }
+
+    .btn-primary:hover{
+      background:#b90000;
+    }
+
+    .btn-secondary{
+      background:#eef1f5;
+      color:#333;
+    }
+
+    .btn-secondary:hover{
+      background:#dde3ea;
+    }
+
+    #map{
+      width:100%;
+      height:72vh;
+      min-height:520px;
+      border-radius:12px;
+      overflow:hidden;
+    }
+
+    .results-list{
+      margin-top:20px;
+      max-height:none;
+      overflow:visible;
+      border-top:1px solid #eceff3;
+      padding-top:16px;
+    }
+
+    .results-header{
+      font-size:1rem;
+      font-weight:700;
+      margin-bottom:12px;
+      color:#222;
+    }
+
+    .result-item{
+      padding:16px 0;
+      border-bottom:1px solid #f0f2f5;
+      font-size:.92rem;
+      cursor:pointer;
+    }
+
+    .result-item strong.result-title{
+      display:block;
+      margin-bottom:8px;
+      color:#222;
+      font-size:1rem;
+    }
+
+    .result-meta{
+      color:#666;
+      line-height:1.6;
+    }
+
+    .result-meta a{
+      color:#d60000;
+      text-decoration:none;
+      word-break:break-word;
+    }
+
+    .result-meta a:hover{
+      text-decoration:underline;
+    }
+
+    .site-footer{
+      margin-top:40px;
+      background:#1f1f1f;
+      color:#f3f3f3;
+    }
+
+    .footer-inner{
+      max-width:1300px;
+      margin:0 auto;
+      padding:32px 16px 24px;
+      display:grid;
+      grid-template-columns:2fr 1fr 1.2fr 1.5fr;
+      gap:24px;
+    }
+
+    .footer-col h3,
+    .footer-col h4{
+      margin:0 0 10px;
+      color:#ffffff;
+    }
+
+    .footer-col h3{ font-size:1.05rem; }
+    .footer-col h4{ font-size:.95rem; }
+
+    .footer-col p,
+    .footer-col li,
+    .footer-col a{
+      font-size:.9rem;
+      line-height:1.5;
+      color:#d9d9d9;
+      text-decoration:none;
+    }
+
+    .footer-col ul{
+      list-style:none;
+      padding:0;
+      margin:0;
+    }
+
+    .footer-col li{
+      margin-bottom:6px;
+    }
+
+    .footer-col a:hover{
+      color:#ffffff;
+      text-decoration:underline;
+    }
+
+    .footer-bottom{
+      border-top:1px solid rgba(255,255,255,.12);
+      text-align:center;
+      padding:14px 16px;
+      font-size:.85rem;
+      color:#cfcfcf;
+    }
+
+    @media (max-width: 960px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      #map{
+        height:60vh;
+        min-height:420px;
+      }
+    }
+
+    @media (max-width: 900px){
+      .footer-inner{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width: 700px){
+      header{
+        padding:12px 14px;
+      }
+
+      header img{
+        height:44px;
+      }
+
+      header h1{
+        font-size:1.2rem;
+      }
+
+      .slide img{
+        max-height:180px;
+      }
+    }
+
+    @media (max-width: 600px){
+      .footer-inner{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="img/feccooex.png" alt="FECCOOEx">
+    <h1>Centros Educativos de Extremadura</h1>
+  </header>
+
+  <div class="campaign-wrap">
+    <div class="carousel" id="campaignCarousel">
+      <div class="carousel-empty" id="carouselEmpty">Cargando campañas…</div>
+      <button class="carousel-btn prev" id="carouselPrev" style="display:none;">‹</button>
+      <button class="carousel-btn next" id="carouselNext" style="display:none;">›</button>
+      <div class="carousel-track" id="carouselTrack" style="display:none;"></div>
+      <div class="dots" id="carouselDots" style="display:none;"></div>
+    </div>
+  </div>
+
+  <main class="page-wrap">
+    <div class="toolbar">
+      <div class="summary" id="summaryBox">Cargando centros…</div>
+      <a class="delegados-btn" href="delegados.html">Área delegados/as</a>
+    </div>
+
+    <div class="layout">
+      <aside class="panel">
+        <h2>Filtros</h2>
+
+        <div class="filters">
+          <div class="filter-group">
+            <label for="searchNombre">Nombre del centro</label>
+            <input type="text" id="searchNombre" placeholder="Nombre del centro">
+          </div>
+
+          <div class="filter-group">
+            <label for="searchCodigo">Código de centro</label>
+            <input type="text" id="searchCodigo" placeholder="Código del centro">
+          </div>
+
+          <div class="filter-group">
+            <label for="titularidadFilter">Titularidad</label>
+            <select id="titularidadFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="tipoCentroFilter">Tipo de centro</label>
+            <select id="tipoCentroFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="etapasFilter">Etapas</label>
+            <select id="etapasFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="dificilFilter">Difícil desempeño</label>
+            <select id="dificilFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="zonaFilter">Zona</label>
+            <select id="zonaFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="municipioFilter">Municipio</label>
+            <select id="municipioFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="provinciaFilter">Provincia</label>
+            <select id="provinciaFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn-primary" id="applyBtn" type="button">Aplicar filtros</button>
+            <button class="btn-secondary" id="resetBtn" type="button">Limpiar</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel">
+        <div id="map"></div>
+        <div class="results-list" id="resultsList"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h3>Federación de Enseñanza de CCOO de Extremadura</h3>
+        <p>
+          Centros Educativos de Extremadura es un espacio de consulta con recursos
+          públicos y sindicales para la comunidad educativa.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Accesos</h4>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="delegados.html">Área delegados/as</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Organización</h4>
+        <p>FECCOOEx · Comisiones Obreras de Extremadura</p>
+        <p>Información, orientación y apoyo sindical para los centros educativos.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Aviso</h4>
+        <p>
+          La información mostrada en esta web tiene carácter informativo y de apoyo
+          sindical. Conviene contrastar siempre los datos con las fuentes oficiales
+          cuando proceda.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      © FECCOO Extremadura · Todos los derechos reservados
+    </div>
+  </footer>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    const BANNERS_CSV = "banners.csv";
+    const CENTROS_CSV = "centros.csv";
+
+    let allCenters = [];
+    let filteredCenters = [];
+    let map;
+    let markersLayer;
+    let bannerIndex = 0;
+    let bannerItems = [];
+    let bannerTimer = null;
+
+    const summaryBox = document.getElementById("summaryBox");
+    const resultsList = document.getElementById("resultsList");
+
+    const searchNombre = document.getElementById("searchNombre");
+    const searchCodigo = document.getElementById("searchCodigo");
+    const titularidadFilter = document.getElementById("titularidadFilter");
+    const tipoCentroFilter = document.getElementById("tipoCentroFilter");
+    const etapasFilter = document.getElementById("etapasFilter");
+    const dificilFilter = document.getElementById("dificilFilter");
+    const zonaFilter = document.getElementById("zonaFilter");
+    const municipioFilter = document.getElementById("municipioFilter");
+    const provinciaFilter = document.getElementById("provinciaFilter");
+    const applyBtn = document.getElementById("applyBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    function splitCSVLine(line) {
+      const out = [];
+      let cur = "";
+      let inQ = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+
+        if (ch === '"' && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+          continue;
+        }
+
+        if (ch === '"') {
+          inQ = !inQ;
+          continue;
+        }
+
+        if (ch === "," && !inQ) {
+          out.push(cur);
+          cur = "";
+          continue;
+        }
+
+        cur += ch;
+      }
+
+      out.push(cur);
+      return out;
+    }
+
+    function parseCSV(text) {
+      let cleanText = text.replace(/\r/g, "").trim();
+
+      if (
+        cleanText.includes("\\n") &&
+        cleanText.split("\n").length === 1
+      ) {
+        cleanText = cleanText.replace(/\\n/g, "\n");
+      }
+
+      const lines = cleanText.split("\n").filter(l => l.trim() !== "");
+      if (!lines.length) return [];
+
+      const headers = splitCSVLine(lines[0]).map(h => h.trim());
+
+      return lines.slice(1).map(line => {
+        const cols = splitCSVLine(line);
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (cols[i] ?? "").trim());
+        return obj;
+      });
+    }
+
+    function uniqueSorted(values) {
+      return [...new Set(values.filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b, "es", { sensitivity: "base" })
+      );
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeAssetPath(path) {
+      const p = String(path || "").trim();
+      if (!p) return "";
+      if (/^https?:\/\//i.test(p)) return p;
+      return p.replace(/^\/+/, "");
+    }
+
+    function normBool(v) {
+      return ["1", "true", "si", "sí", "x", "ok"].includes((v || "").toLowerCase().trim());
+    }
+
+    function fillSelect(select, values) {
+      const currentValue = select.value;
+      select.innerHTML = "";
+
+      const first = document.createElement("option");
+      first.value = "";
+      first.textContent = "Seleccionar";
+      select.appendChild(first);
+
+      values.forEach(v => {
+        const option = document.createElement("option");
+        option.value = v;
+        option.textContent = v;
+        select.appendChild(option);
+      });
+
+      if (values.includes(currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
+    function centerToModel(row) {
+      return {
+        raw: row,
+        nombre: row.nombre || "",
+        codigo: row.codigo_centro || "",
+        titularidad: row.titularidad || "",
+        tipoCentro: row.tipo_centro || "",
+        etapas: row.etapas || "",
+        dificil: row["dificil_desempeño"] || row["dificil_desempeno"] || "",
+        zona: row.zona || "",
+        direccion: row.direccion || "",
+        cp: row.cp || "",
+        municipio: row.municipio || "",
+        provincia: row.provincia || "",
+        telefono: row.telefono || "",
+        fax: row.fax || "",
+        email: row.email || "",
+        web: row.web || "",
+        horario: row.horario || "",
+        jornadaPartida: row.jornada_partida || "",
+        lat: Number(String(row.lat || "").replace(",", ".")),
+        lng: Number(String(row.lng || "").replace(",", "."))
+      };
+    }
+
+    function populateFilters(data) {
+      fillSelect(titularidadFilter, uniqueSorted(data.map(d => d.titularidad)));
+      fillSelect(tipoCentroFilter, uniqueSorted(data.map(d => d.tipoCentro)));
+      fillSelect(etapasFilter, uniqueSorted(data.map(d => d.etapas)));
+      fillSelect(dificilFilter, uniqueSorted(data.map(d => d.dificil)));
+      fillSelect(zonaFilter, uniqueSorted(data.map(d => d.zona)));
+      fillSelect(municipioFilter, uniqueSorted(data.map(d => d.municipio)));
+      fillSelect(provinciaFilter, uniqueSorted(data.map(d => d.provincia)));
+    }
+
+    function matchesFilter(center) {
+      const nombre = searchNombre.value.trim().toLowerCase();
+      const codigo = searchCodigo.value.trim().toLowerCase();
+      const titularidad = titularidadFilter.value;
+      const tipoCentro = tipoCentroFilter.value;
+      const etapas = etapasFilter.value;
+      const dificil = dificilFilter.value;
+      const zona = zonaFilter.value;
+      const municipio = municipioFilter.value;
+      const provincia = provinciaFilter.value;
+
+      const okNombre = !nombre || center.nombre.toLowerCase().includes(nombre);
+      const okCodigo = !codigo || center.codigo.toLowerCase().includes(codigo);
+      const okTitularidad = !titularidad || center.titularidad === titularidad;
+      const okTipoCentro = !tipoCentro || center.tipoCentro === tipoCentro;
+      const okEtapas = !etapas || center.etapas === etapas;
+      const okDificil = !dificil || center.dificil === dificil;
+      const okZona = !zona || center.zona === zona;
+      const okMunicipio = !municipio || center.municipio === municipio;
+      const okProvincia = !provincia || center.provincia === provincia;
+
+      return (
+        okNombre &&
+        okCodigo &&
+        okTitularidad &&
+        okTipoCentro &&
+        okEtapas &&
+        okDificil &&
+        okZona &&
+        okMunicipio &&
+        okProvincia
+      );
+    }
+
+    function popupHtml(center) {
+      const webHtml = center.web
+        ? `<div><strong>Web:</strong> <a href="${escapeHtml(center.web)}" target="_blank" rel="noopener noreferrer">${escapeHtml(center.web)}</a></div>`
+        : `<div><strong>Web:</strong> -</div>`;
+
+      return `
+        <div style="min-width:240px; line-height:1.45;">
+          <div style="font-weight:700; margin-bottom:6px;">${escapeHtml(center.nombre || "Centro educativo")}</div>
+          <div><strong>Código:</strong> ${escapeHtml(center.codigo || "-")}</div>
+          <div><strong>Titularidad:</strong> ${escapeHtml(center.titularidad || "-")}</div>
+          <div><strong>Tipo:</strong> ${escapeHtml(center.tipoCentro || "-")}</div>
+          <div><strong>Etapas:</strong> ${escapeHtml(center.etapas || "-")}</div>
+          <div><strong>Difícil desempeño:</strong> ${escapeHtml(center.dificil || "-")}</div>
+          <div><strong>Zona:</strong> ${escapeHtml(center.zona || "-")}</div>
+          <div><strong>Dirección:</strong> ${escapeHtml(center.direccion || "-")}</div>
+          <div><strong>Municipio:</strong> ${escapeHtml(center.municipio || "-")}</div>
+          <div><strong>Provincia:</strong> ${escapeHtml(center.provincia || "-")}</div>
+          <div><strong>Teléfono:</strong> ${escapeHtml(center.telefono || "-")}</div>
+          <div><strong>Fax:</strong> ${escapeHtml(center.fax || "-")}</div>
+          <div><strong>Email:</strong> ${escapeHtml(center.email || "-")}</div>
+          ${webHtml}
+        </div>
+      `;
+    }
+
+    function renderList(data) {
+      resultsList.innerHTML = "";
+
+      const header = document.createElement("div");
+      header.className = "results-header";
+      header.textContent = "Resultados";
+      resultsList.appendChild(header);
+
+      if (!data.length) {
+        const empty = document.createElement("div");
+        empty.className = "result-item";
+        empty.innerHTML = `
+          <strong class="result-title">Sin resultados</strong>
+          <div class="result-meta">
+            No hay centros que coincidan con los filtros aplicados.
+          </div>
+        `;
+        resultsList.appendChild(empty);
+        return;
+      }
+
+      data.forEach(center => {
+        const div = document.createElement("div");
+        div.className = "result-item";
+
+        const webHtml = center.web
+          ? `<a href="${escapeHtml(center.web)}" target="_blank" rel="noopener noreferrer">${escapeHtml(center.web)}</a>`
+          : "-";
+
+        div.innerHTML = `
+          <strong class="result-title">${escapeHtml(center.nombre || "Centro educativo")}</strong>
+          <div class="result-meta">
+            <strong>Código del centro:</strong> ${escapeHtml(center.codigo || "-")}<br>
+            <strong>Titularidad:</strong> ${escapeHtml(center.titularidad || "-")}<br>
+            <strong>Tipo de centro:</strong> ${escapeHtml(center.tipoCentro || "-")}<br>
+            <strong>Etapas:</strong> ${escapeHtml(center.etapas || "-")}<br>
+            <strong>Difícil desempeño:</strong> ${escapeHtml(center.dificil || "-")}<br>
+            <strong>Dirección:</strong> ${escapeHtml(center.direccion || "-")}<br>
+            <strong>Municipio:</strong> ${escapeHtml(center.municipio || "-")}<br>
+            <strong>Provincia:</strong> ${escapeHtml(center.provincia || "-")}<br>
+            <strong>Teléfono:</strong> ${escapeHtml(center.telefono || "-")}<br>
+            <strong>Fax:</strong> ${escapeHtml(center.fax || "-")}<br>
+            <strong>Email:</strong> ${escapeHtml(center.email || "-")}<br>
+            <strong>Web:</strong> ${webHtml}
+          </div>
+        `;
+
+        div.addEventListener("click", () => {
+          if (!Number.isNaN(center.lat) && !Number.isNaN(center.lng)) {
+            map.setView([center.lat, center.lng], 14);
+          }
+        });
+
+        resultsList.appendChild(div);
+      });
+    }
+
+    function renderMarkers(data) {
+      markersLayer.clearLayers();
+      const bounds = [];
+
+      data.forEach(center => {
+        if (Number.isNaN(center.lat) || Number.isNaN(center.lng)) return;
+
+        const marker = L.marker([center.lat, center.lng]);
+        marker.bindPopup(popupHtml(center));
+        marker.addTo(markersLayer);
+        bounds.push([center.lat, center.lng]);
+      });
+
+      if (bounds.length) {
+        map.fitBounds(bounds, { padding: [30, 30] });
+      } else {
+        map.setView([39.0, -6.0], 8);
+      }
+    }
+
+    function updateSummary(data) {
+      summaryBox.textContent = `${data.length} centros mostrados de ${allCenters.length}`;
+    }
+
+    function applyFilters() {
+      filteredCenters = allCenters.filter(matchesFilter);
+      updateSummary(filteredCenters);
+      renderMarkers(filteredCenters);
+      renderList(filteredCenters);
+    }
+
+    function initMap() {
+      map = L.map("map").setView([39.0, -6.0], 8);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    function applyBannerPosition() {
+      const elTrack = document.getElementById("carouselTrack");
+      const elDots = document.getElementById("carouselDots");
+      elTrack.style.transform = `translateX(${-bannerIndex * 100}%)`;
+      [...elDots.children].forEach((d, i) => d.classList.toggle("active", i === bannerIndex));
+    }
+
+    function goToBanner(i, userAction = false) {
+      if (!bannerItems.length) return;
+      bannerIndex = (i + bannerItems.length) % bannerItems.length;
+      applyBannerPosition();
+      if (userAction) restartBannerAuto();
+    }
+
+    function stopBannerAuto() {
+      if (bannerTimer) {
+        clearInterval(bannerTimer);
+        bannerTimer = null;
+      }
+    }
+
+    function startBannerAuto() {
+      stopBannerAuto();
+      bannerTimer = setInterval(() => goToBanner(bannerIndex + 1, false), 5000);
+    }
+
+    function restartBannerAuto() {
+      if (bannerItems.length > 1) startBannerAuto();
+    }
+
+    function buildCarousel(items) {
+      const elEmpty = document.getElementById("carouselEmpty");
+      const elTrack = document.getElementById("carouselTrack");
+      const elDots = document.getElementById("carouselDots");
+      const btnPrev = document.getElementById("carouselPrev");
+      const btnNext = document.getElementById("carouselNext");
+
+      bannerItems = items;
+      bannerIndex = 0;
+      elTrack.innerHTML = "";
+      elDots.innerHTML = "";
+
+      items.forEach((item, i) => {
+        const slide = document.createElement("div");
+        slide.className = "slide";
+
+        const imgPath = normalizeAssetPath(item.imagen);
+        const imgHtml = `<img src="${imgPath}" alt="${escapeHtml(item.alt || "Banner")}" loading="lazy">`;
+
+        const enlace = String(item.enlace || "").trim();
+        slide.innerHTML = enlace
+          ? `<a href="${escapeHtml(enlace)}" target="_blank" rel="noopener noreferrer">${imgHtml}</a>`
+          : imgHtml;
+
+        elTrack.appendChild(slide);
+
+        const dot = document.createElement("button");
+        dot.className = "dot" + (i === 0 ? " active" : "");
+        dot.type = "button";
+        dot.addEventListener("click", () => goToBanner(i, true));
+        elDots.appendChild(dot);
+      });
+
+      const multi = items.length > 1;
+      elEmpty.style.display = "none";
+      elTrack.style.display = "flex";
+      elDots.style.display = multi ? "flex" : "none";
+      btnPrev.style.display = multi ? "flex" : "flex";
+      btnNext.style.display = multi ? "flex" : "flex";
+
+      btnPrev.onclick = () => goToBanner(bannerIndex - 1, true);
+      btnNext.onclick = () => goToBanner(bannerIndex + 1, true);
+
+      applyBannerPosition();
+
+      if (multi) startBannerAuto();
+      else stopBannerAuto();
+    }
+
+    function loadBanners() {
+      fetch(BANNERS_CSV + "?v=" + Date.now())
+        .then(r => {
+          if (!r.ok) throw new Error("No se pudo cargar banners.csv");
+          return r.text();
+        })
+        .then(text => {
+          const rows = parseCSV(text);
+
+          const items = rows
+            .filter(r => {
+              const activo = Object.prototype.hasOwnProperty.call(r, "activo") ? r.activo : "si";
+              return normBool(activo);
+            })
+            .sort((a, b) => Number(a.orden || 999) - Number(b.orden || 999));
+
+          if (!items.length) {
+            document.getElementById("carouselEmpty").textContent = "No hay campañas activas.";
+            return;
+          }
+
+          buildCarousel(items);
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("carouselEmpty").textContent = "No se ha podido cargar el banner.";
+        });
+    }
+
+    function loadCenters() {
+      fetch(CENTROS_CSV + "?v=" + Date.now())
+        .then(r => {
+          if (!r.ok) throw new Error("No se pudo cargar centros.csv");
+          return r.text();
+        })
+        .then(text => {
+          const rows = parseCSV(text);
+          allCenters = rows.map(centerToModel);
+          populateFilters(allCenters);
+          applyFilters();
+        })
+        .catch(err => {
+          console.error(err);
+          summaryBox.textContent = "Error al cargar centros.csv";
+          resultsList.innerHTML = `
+            <div class="results-header">Resultados</div>
+            <div class="result-item">
+              <strong class="result-title">Error</strong>
+              <div class="result-meta">
+                Revisa que centros.csv esté en la raíz del repositorio y que incluya lat y lng.
+              </div>
+            </div>
+          `;
+        });
+    }
+
+    applyBtn.addEventListener("click", applyFilters);
+
+    resetBtn.addEventListener("click", () => {
+      searchNombre.value = "";
+      searchCodigo.value = "";
+      titularidadFilter.value = "";
+      tipoCentroFilter.value = "";
+      etapasFilter.value = "";
+      dificilFilter.value = "";
+      zonaFilter.value = "";
+      municipioFilter.value = "";
+      provinciaFilter.value = "";
+      applyFilters();
+    });
+
+    searchNombre.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") applyFilters();
+    });
+
+    searchCodigo.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") applyFilters();
+    });
+
+    document.getElementById("campaignCarousel").addEventListener("mouseenter", stopBannerAuto);
+    document.getElementById("campaignCarousel").addEventListener("mouseleave", () => {
+      if (bannerItems.length > 1) startBannerAuto();
+    });
+
+    initMap();
+    loadBanners();
+    loadCenters();
+  </script>
+</body>
+</html>
