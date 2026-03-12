@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Centros de trabajo · Herramientas FECCOOEx</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- FOOTER CENTRALIZADO -->
+  <link rel="stylesheet" href="/assets/footer.css" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f6;color:#222}
+
+    header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 24px;background:#d60000;color:#fff;
+      box-shadow:0 2px 6px rgba(0,0,0,.25);position:sticky;top:0;z-index:10
+    }
+    header img{height:52px}
+    .titles h1{margin:0;font-size:1.6rem;font-weight:700}
+    .titles p{margin:2px 0 0;font-size:.9rem;opacity:.95}
+
+    /* VOLVER (estilo unificado) */
+    .back-wrap{
+      max-width:1300px;
+      margin:14px auto 0;
+      padding:0 16px;
+    }
+    .back-home{
+      display:inline-block;
+      background:#d60000;
+      color:#fff;
+      text-decoration:none;
+      font-weight:800;
+      padding:8px 12px;
+      border-radius:999px;
+      box-shadow:0 2px 5px rgba(214,0,0,0.25);
+      transition: background 0.15s, transform 0.12s ease, box-shadow 0.12s ease;
+      border:1px solid rgba(255,255,255,0.35);
+      font-size:.9rem;
+    }
+    .back-home:hover{
+      background:#b40000;
+      transform:translateY(-1px);
+      box-shadow:0 4px 9px rgba(180,0,0,0.30);
+    }
+
+    /* ===== CARRUSEL (universal) ===== */
+    .campaign-wrap{
+      max-width:1300px;
+      margin:12px auto 0;
+      padding:0 16px;
+    }
+
+    .carousel{
+      background:#fff;
+      border:1px solid #e1e4ea;
+      border-radius:12px;
+      box-shadow:0 3px 8px rgba(0,0,0,0.08);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .carousel-track{
+      display:flex;
+      transition:transform 350ms ease;
+      will-change: transform;
+    }
+
+    .slide{
+      min-width:100%;
+      position:relative;
+      background:#fff;
+    }
+
+    .slide a{
+      display:block;
+      text-decoration:none;
+      color:inherit;
+    }
+
+    .slide img{
+      display:block;
+      width:100%;
+      height:auto;
+      object-fit:contain;
+      max-height:260px;
+      background:#fff;
+    }
+
+    @media (max-width:700px){
+      .slide img{ max-height:180px; }
+    }
+
+    .carousel-btn{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      border:none;
+      background:rgba(0,0,0,0.35);
+      color:#fff;
+      width:40px;
+      height:40px;
+      border-radius:999px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:background 120ms ease, transform 120ms ease;
+      z-index:2;
+    }
+    .carousel-btn:hover{
+      background:rgba(0,0,0,0.5);
+      transform:translateY(-50%) scale(1.03);
+    }
+    .carousel-btn.prev{ left:10px; }
+    .carousel-btn.next{ right:10px; }
+
+    @media (max-width:700px){
+      .carousel-btn{ width:36px; height:36px; }
+      .carousel-btn.prev{ left:8px; }
+      .carousel-btn.next{ right:8px; }
+    }
+
+    .dots{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:10px;
+      display:flex;
+      justify-content:center;
+      gap:8px;
+      z-index:2;
+      padding:0 10px;
+    }
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.9);
+      background:rgba(0,0,0,0.35);
+      cursor:pointer;
+      transition:transform 120ms ease, background 120ms ease;
+    }
+    .dot.active{
+      background:#d60000;
+      border-color:rgba(255,255,255,0.95);
+      transform:scale(1.12);
+    }
+
+    .carousel-empty{
+      padding:14px 16px;
+      color:#555;
+      font-size:0.95rem;
+    }
+
+    /* MAIN */
+    main{max-width:1300px;margin:14px auto 0;padding:0 16px 40px}
+
+    h1{margin:0 0 6px;font-size:1.6rem}
+    .subtitle{margin:0 0 14px;color:#444;font-size:.95rem;line-height:1.25rem}
+
+    /* layout solo para filtros + mapa */
+    .layout{
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media(max-width:1100px){
+      .layout{grid-template-columns:1fr}
+    }
+
+    .card{
+      background:#fff;border:1px solid #e1e4ea;border-radius:12px;
+      box-shadow:0 3px 10px rgba(0,0,0,0.10);
+      padding:14px 16px 16px;margin-bottom:14px
+    }
+
+    /* Filtros: cada uno en su línea */
+    .filter-row{margin-top:10px}
+    .filter-row label{display:block;font-size:.82rem;font-weight:900;color:#555;margin-bottom:4px}
+    .filter-row select, .filter-row input{
+      width:100%;padding:9px 10px;border-radius:10px;border:1px solid #cbd5e1;
+      font-size:.95rem;background:#fff
+    }
+
+    .btn{
+      border:none;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer;display:inline-block
+    }
+    .btn-primary{background:#d60000;color:#fff}
+    .btn-secondary{background:#111827;color:#fff}
+    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+    /* MAPA */
+    #map{height:560px;border-radius:12px;border:1px solid #e1e4ea}
+    @media(max-width:1100px){ #map{height:520px} }
+
+    .results-meta{margin-top:8px;color:#444;font-size:.9rem}
+
+    /* cabecera de mapa con leyenda */
+    .map-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .map-head h2{margin:0;font-size:1.05rem;color:#111827}
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px 10px;
+      align-items:center;
+      font-size:0.82rem;
+      color:#374151;
+    }
+    .legend .item{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:3px 8px;
+      border:1px solid #e5e7eb;
+      border-radius:999px;
+      background:#f9fafb;
+    }
+    .legend .dot{
+      width:10px;height:10px;border-radius:999px;display:inline-block;
+    }
+
+    /* listado en módulo inferior a ancho completo */
+    .list-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .list-header h2{margin:0;font-size:1.05rem;color:#111827}
+    .muted{color:#6b7280;font-size:.86rem}
+
+    .grid-list{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 1100px){
+      .grid-list{grid-template-columns: repeat(2, minmax(0, 1fr));}
+    }
+    @media (max-width: 700px){
+      .grid-list{grid-template-columns: 1fr;}
+    }
+
+    .item{
+      border:1px solid #e5e7eb;border-radius:12px;padding:10px 10px;background:#fff
+    }
+    .item h3{margin:0 0 4px;font-size:1rem}
+    .item .small{font-size:.84rem;color:#555;line-height:1.2rem}
+    .tagline{margin-top:4px;font-size:.82rem;color:#666}
+
+    /* Clickable cards */
+    .center-card{
+      cursor:pointer;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .center-card:hover{
+      transform:translateY(-1px);
+      box-shadow:0 4px 10px rgba(0,0,0,0.10);
+      border-color:#d60000;
+    }
+    .hint{
+      margin-top:10px;
+      padding:10px 12px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:10px;
+      color:#444;
+      font-size:.92rem;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <img src="/img/feccooex.png" alt="FECCOOEx">
+    <div class="titles">
+      <h1>Herramientas FECCOOEx</h1>
+      <p>Consulta de centros de trabajo (mapa y filtros)</p>
+    </div>
+  </div>
+  <!-- nav eliminado -->
+</header>
+
+<!-- Volver -->
+<div class="back-wrap">
+  <a class="back-home" href="/index.html">Volver a la portada</a>
+</div>
+
+<!-- Carrusel -->
+<div class="campaign-wrap">
+  <div class="carousel" id="campaignCarousel" aria-label="Campañas">
+    <div class="carousel-empty" id="carouselEmpty">Cargando campañas…</div>
+    <button class="carousel-btn prev" id="carouselPrev" aria-label="Anterior" style="display:none;">‹</button>
+    <button class="carousel-btn next" id="carouselNext" aria-label="Siguiente" style="display:none;">›</button>
+    <div class="carousel-track" id="carouselTrack" style="display:none;"></div>
+    <div class="dots" id="carouselDots" style="display:none;"></div>
+  </div>
+</div>
+
+<main>
+  <h1>Centros de trabajo</h1>
+  <p class="subtitle">
+    Filtra por municipio, zona, tipo de centro, titularidad, horario y jornada. Los resultados se reflejan en el mapa y el listado.
+  </p>
+
+  <!-- MÓDULO SUPERIOR: FILTROS + MAPA -->
+  <div class="layout">
+    <!-- PANEL IZQUIERDO -->
+    <section class="card">
+      <h2 style="margin:0 0 6px;">Filtros</h2>
+      <div style="font-size:.9rem;color:#555;">Cada filtro aparece en su propia línea.</div>
+
+      <div class="filter-row">
+        <label for="f_busqueda">Búsqueda por nombre / código / dirección</label>
+        <input id="f_busqueda" type="text" placeholder="Escribe y filtra..." />
+      </div>
+
+      <div class="filter-row">
+        <label for="f_municipio">Municipio</label>
+        <select id="f_municipio">
+          <option value="" disabled selected>Selecciona municipio…</option>
+        </select>
+      </div>
+
+      <div class="filter-row">
+        <label for="f_zona">Zona (1–8)</label>
+        <select id="f_zona">
+          <option value="" disabled selected>Selecciona zona…</option>
+        </select>
+      </div>
+
+      <div class="filter-row">
+        <label for="f_tipo">Tipo de centro</label>
+        <select id="f_tipo">
+          <option value="" disabled selected>Selecciona tipo…</option>
+        </select>
+      </div>
+
+      <div class="filter-row">
+        <label for="f_titularidad">Titularidad</label>
+        <select id="f_titularidad">
+          <option value="" disabled selected>Selecciona titularidad…</option>
+        </select>
+      </div>
+
+      <div class="filter-row">
+        <label for="f_horario">Horario</label>
+        <select id="f_horario">
+          <option value="" disabled selected>Selecciona horario…</option>
+        </select>
+      </div>
+
+      <div class="filter-row">
+        <label for="f_jornada">Jornada</label>
+        <select id="f_jornada">
+          <option value="" disabled selected>Selecciona jornada…</option>
+        </select>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn btn-secondary" id="btn_reset" type="button">Limpiar filtros</button>
+        <button class="btn btn-primary" id="btn_reload" type="button">Recargar CSV</button>
+      </div>
+
+      <div class="results-meta" id="meta"></div>
+
+      <div class="hint" id="hintInicial">
+        Usa uno o varios filtros para ver resultados. No se muestra el listado completo por defecto.
+      </div>
+
+      <div class="muted" style="margin-top:6px;">
+        El listado completo aparece debajo del mapa.
+      </div>
+    </section>
+
+    <!-- MAPA -->
+    <section class="card" style="padding:12px;">
+      <div class="map-head">
+        <h2>Mapa</h2>
+        <div id="legend" class="legend"></div>
+      </div>
+
+      <div id="map"></div>
+      <!-- Frase eliminada debajo del mapa -->
+    </section>
+  </div>
+
+  <!-- MÓDULO INFERIOR: LISTADO A ANCHO COMPLETO -->
+  <section class="card" id="resultsBlock" style="display:none;">
+    <div class="list-header">
+      <h2>Relación de centros</h2>
+      <div class="muted" id="contador">0 centros</div>
+    </div>
+    <div class="grid-list" id="list"></div>
+  </section>
+</main>
+
+<!-- FOOTER CENTRAL -->
+<div id="site-footer"></div>
+<script src="/assets/footer.js?v=1"></script>
+
+<script>
+  /***********************
+   * 1) CARRUSEL UNIVERSAL
+   ***********************/
+  (function initCarousel(){
+    const BANNERS_CSV = "/banners.csv";
+
+    const elEmpty = document.getElementById("carouselEmpty");
+    const elTrack = document.getElementById("carouselTrack");
+    const elDots  = document.getElementById("carouselDots");
+    const btnPrev = document.getElementById("carouselPrev");
+    const btnNext = document.getElementById("carouselNext");
+    const elCarousel = document.getElementById("campaignCarousel");
+
+    if (!elEmpty || !elTrack || !elDots || !btnPrev || !btnNext || !elCarousel) return;
+
+    let slides = [];
+    let index = 0;
+    let timer = null;
+    const AUTO_MS = 5500;
+
+    function splitCSVLine(line){
+      const out = [];
+      let cur = "";
+      let inQ = false;
+      for (let i=0; i<line.length; i++){
+        const ch = line[i];
+        if (ch === '"' && line[i+1] === '"'){ cur += '"'; i++; continue; }
+        if (ch === '"'){ inQ = !inQ; continue; }
+        if (ch === "," && !inQ){ out.push(cur); cur=""; continue; }
+        cur += ch;
+      }
+      out.push(cur);
+      return out;
+    }
+    function parseCSV(text){
+      const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim() !== "");
+      if (!lines.length) return [];
+      const headers = splitCSVLine(lines[0]).map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const cols = splitCSVLine(line);
+        const obj = {};
+        headers.forEach((h,i) => obj[h] = (cols[i] ?? "").trim());
+        return obj;
+      });
+    }
+    function normBool(v){
+      return ["1","true","si","sí","x","ok"].includes((v||"").toLowerCase().trim());
+    }
+
+    function apply(){
+      elTrack.style.transform = `translateX(${-index * 100}%)`;
+      [...elDots.children].forEach((d, i) => d.classList.toggle("active", i === index));
+    }
+    function goTo(i, userAction=false){
+      index = (i + slides.length) % slides.length;
+      apply();
+      if (userAction) restartAuto();
+    }
+    function next(user=false){ goTo(index + 1, user); }
+    function prev(user=false){ goTo(index - 1, user); }
+
+    function startAuto(){
+      stopAuto();
+      timer = setInterval(() => next(false), AUTO_MS);
+    }
+    function stopAuto(){
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+    function restartAuto(){
+      stopAuto();
+      startAuto();
+    }
+
+    function buildCarousel(items){
+      slides = items;
+      elTrack.innerHTML = "";
+      elDots.innerHTML = "";
+
+      slides.forEach((s, i) => {
+        const slide = document.createElement("div");
+        slide.className = "slide";
+
+        const imgSrc = s.imagen;
+        const alt = s.alt || "Campaña FECCOOEx";
+        const href = (s.enlace || "").trim();
+
+        const img = `<img src="${imgSrc}" alt="${alt}" loading="lazy">`;
+        slide.innerHTML = href ? `<a href="${href}" aria-label="${alt}">${img}</a>` : img;
+
+        elTrack.appendChild(slide);
+
+        const dot = document.createElement("button");
+        dot.className = "dot" + (i === 0 ? " active" : "");
+        dot.setAttribute("aria-label", "Ir a campaña " + (i+1));
+        dot.addEventListener("click", () => goTo(i, true));
+        elDots.appendChild(dot);
+      });
+
+      const multi = slides.length > 1;
+      elEmpty.style.display = "none";
+      elTrack.style.display = "flex";
+      elDots.style.display = multi ? "flex" : "none";
+      btnPrev.style.display = multi ? "flex" : "none";
+      btnNext.style.display = multi ? "flex" : "none";
+
+      index = 0;
+      apply();
+      if (multi) startAuto();
+    }
+
+    elCarousel.addEventListener("mouseenter", stopAuto);
+    elCarousel.addEventListener("mouseleave", () => { if (slides.length > 1) startAuto(); });
+
+    btnNext.addEventListener("click", () => next(true));
+    btnPrev.addEventListener("click", () => prev(true));
+
+    let touchX = null;
+    elCarousel.addEventListener("touchstart", (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      touchX = e.touches[0].clientX;
+      stopAuto();
+    }, {passive:true});
+
+    elCarousel.addEventListener("touchend", (e) => {
+      if (touchX === null) return;
+      const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : touchX;
+      const dx = endX - touchX;
+      touchX = null;
+
+      if (Math.abs(dx) > 40){
+        dx < 0 ? next(true) : prev(true);
+      } else {
+        restartAuto();
+      }
+    }, {passive:true});
+
+    fetch(BANNERS_CSV + "?v=" + Date.now())
+      .then(r => { if (!r.ok) throw new Error("No se pudo cargar banners.csv"); return r.text(); })
+      .then(text => {
+        const rows = parseCSV(text);
+        const items = rows
+          .filter(r => normBool(r.activo))
+          .sort((a,b) => (parseInt(a.orden||"999",10) - parseInt(b.orden||"999",10)));
+
+        if (!items.length){
+          elEmpty.textContent = "No hay campañas activas.";
+          return;
+        }
+        buildCarousel(items);
+      })
+      .catch(err => {
+        console.error(err);
+        elEmpty.textContent = "No se ha podido cargar el banner de campañas.";
+      });
+  })();
+</script>
+
+<script>
+  /***********************
+   * 2) CENTROS
+   ***********************/
+
+  const COL = {
+    id: "id",
+    nombre: "nombre",
+    codigo_centro: "codigo_centro",
+    titularidad: "titularidad",
+    tipo_centro: "tipo_centro",
+    etapas: "etapas",
+    lat: "lat",
+    lng: "lng",
+    zona: "zona",
+    direccion: "direccion",
+    cp: "cp",
+    municipio: "municipio",
+    provincia: "provincia",
+    telefono: "telefono",
+    fax: "fax",
+    email: "email",
+    web: "web",
+    horario: "horario",
+    jornada_partida: "jornada_partida"
+  };
+
+  const norm = (v) => (v ?? "").toString().trim();
+  const normKey = (v) => norm(v).toLowerCase();
+
+  function parseFloatOrNull(v){
+    const t = norm(v).replace(",", ".");
+    const x = Number.parseFloat(t);
+    return Number.isFinite(x) ? x : null;
+  }
+
+  function uniqueSorted(values) {
+    const set = new Set(values.map(norm).filter(Boolean));
+    return [...set].sort((a,b) => a.localeCompare(b, "es", {sensitivity:"base"}));
+  }
+
+  function setOptions(selectEl, values, placeholder) {
+    const current = selectEl.value;
+
+    selectEl.innerHTML = "";
+
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = placeholder;
+    opt0.disabled = true;
+    opt0.selected = true;
+    selectEl.appendChild(opt0);
+
+    values.forEach(v => {
+      const o = document.createElement("option");
+      o.value = v;
+      o.textContent = v;
+      selectEl.appendChild(o);
+    });
+
+    if (current && [...selectEl.options].some(o => o.value === current)) {
+      selectEl.value = current;
+      opt0.selected = false;
+    }
+  }
+
+  function escapeHtml(s){
+    return (s ?? "").toString()
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  const PALETTE = [
+    "#d60000", "#2563eb", "#16a34a", "#f59e0b", "#7c3aed",
+    "#0ea5e9", "#db2777", "#65a30d", "#ea580c", "#64748b"
+  ];
+
+  function buildTipoColorMap(rows){
+    const tipos = Array.from(new Set(
+      rows.map(r => norm(r.tipo_centro)).filter(Boolean)
+    )).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+
+    const map = new Map();
+    tipos.forEach((t, i) => map.set(t, PALETTE[i % PALETTE.length]));
+    return map;
+  }
+
+  function iconPorColor(color){
+    return L.divIcon({
+      className: "",
+      html: `<span style="
+        display:inline-block;
+        width:14px;height:14px;border-radius:999px;
+        background:${color};
+        border:2px solid #fff;
+        box-shadow:0 2px 6px rgba(0,0,0,0.35);
+      "></span>`,
+      iconSize: [14,14],
+      iconAnchor: [7,7]
+    });
+  }
+
+  function renderLegend(tipoColorMap){
+    const legend = document.getElementById("legend");
+    if (!legend) return;
+    legend.innerHTML = "";
+
+    Array.from(tipoColorMap.entries()).forEach(([tipo, color]) => {
+      const item = document.createElement("div");
+      item.className = "item";
+      item.innerHTML = `<span class="dot" style="background:${color}"></span>${escapeHtml(tipo)}`;
+      legend.appendChild(item);
+    });
+  }
+
+  const map = L.map("map").setView([39.2, -6.3], 8);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19, attribution: "&copy; OpenStreetMap"
+  }).addTo(map);
+  const markersLayer = L.layerGroup().addTo(map);
+
+  const elBus = document.getElementById("f_busqueda");
+  const elMun = document.getElementById("f_municipio");
+  const elZona = document.getElementById("f_zona");
+  const elTipo = document.getElementById("f_tipo");
+  const elTit = document.getElementById("f_titularidad");
+  const elHor = document.getElementById("f_horario");
+  const elJor = document.getElementById("f_jornada");
+  const elMeta = document.getElementById("meta");
+  const elList = document.getElementById("list");
+  const elCont = document.getElementById("contador");
+
+  const elResultsBlock = document.getElementById("resultsBlock");
+  const elHintInicial = document.getElementById("hintInicial");
+
+  let raw = [];
+  let filtered = [];
+  let tipoColorMap = new Map();
+  const markersById = new Map();
+
+  document.getElementById("btn_reset").addEventListener("click", () => {
+    elBus.value = "";
+    elMun.value = "";
+    elZona.value = "";
+    elTipo.value = "";
+    elTit.value = "";
+    elHor.value = "";
+    elJor.value = "";
+    applyFilters();
+  });
+
+  document.getElementById("btn_reload").addEventListener("click", () => loadCSV(true));
+
+  [elBus, elMun, elZona, elTipo, elTit, elHor, elJor].forEach(el => {
+    el.addEventListener("input", applyFilters);
+    el.addEventListener("change", applyFilters);
+  });
+
+  function showResults(){
+    if (elResultsBlock) elResultsBlock.style.display = "block";
+    if (elHintInicial) elHintInicial.style.display = "none";
+  }
+
+  function hideResults(){
+    if (elResultsBlock) elResultsBlock.style.display = "none";
+    if (elHintInicial) elHintInicial.style.display = "block";
+    elMeta.textContent = "";
+    elCont.textContent = "0 centros";
+    elList.innerHTML = "";
+    markersLayer.clearLayers();
+    markersById.clear();
+    map.setView([39.2, -6.3], 8);
+  }
+
+  function hasActiveFilters(){
+    return Boolean(
+      norm(elBus.value) ||
+      norm(elMun.value) ||
+      norm(elZona.value) ||
+      norm(elTipo.value) ||
+      norm(elTit.value) ||
+      norm(elHor.value) ||
+      norm(elJor.value)
+    );
+  }
+
+  function loadCSV(bustCache=false){
+    const url = "/centros.csv" + (bustCache ? ("?v=" + Date.now()) : "");
+    fetch(url)
+      .then(r => {
+        if(!r.ok) throw new Error("No se pudo cargar centros.csv (" + r.status + ")");
+        return r.text();
+      })
+      .then(text => {
+        const parsed = Papa.parse(text, { header:true, skipEmptyLines:true });
+        const rows = parsed.data || [];
+
+        raw = rows.map(row => ({
+          id: norm(row[COL.id]),
+          nombre: norm(row[COL.nombre]),
+          codigo_centro: norm(row[COL.codigo_centro]),
+          titularidad: norm(row[COL.titularidad]),
+          tipo_centro: norm(row[COL.tipo_centro]),
+          etapas: norm(row[COL.etapas]),
+          lat: parseFloatOrNull(row[COL.lat]),
+          lng: parseFloatOrNull(row[COL.lng]),
+          zona: norm(row[COL.zona]),
+          direccion: norm(row[COL.direccion]),
+          cp: norm(row[COL.cp]),
+          municipio: norm(row[COL.municipio]),
+          provincia: norm(row[COL.provincia]),
+          telefono: norm(row[COL.telefono]),
+          fax: norm(row[COL.fax]),
+          email: norm(row[COL.email]),
+          web: norm(row[COL.web]),
+          horario: norm(row[COL.horario]),
+          jornada_partida: norm(row[COL.jornada_partida])
+        }));
+
+        setOptions(elMun, uniqueSorted(raw.map(x => x.municipio)), "Selecciona municipio…");
+        setOptions(elZona, uniqueSorted(raw.map(x => x.zona)), "Selecciona zona…");
+        setOptions(elTipo, uniqueSorted(raw.map(x => x.tipo_centro)), "Selecciona tipo…");
+        setOptions(elTit, uniqueSorted(raw.map(x => x.titularidad)), "Selecciona titularidad…");
+        setOptions(elHor, uniqueSorted(raw.map(x => x.horario)), "Selecciona horario…");
+        setOptions(elJor, uniqueSorted(raw.map(x => x.jornada_partida)), "Selecciona jornada…");
+
+        tipoColorMap = buildTipoColorMap(raw);
+        renderLegend(tipoColorMap);
+
+        applyFilters();
+      })
+      .catch(err => {
+        elMeta.textContent = "Error: " + err.message;
+        elList.innerHTML = "";
+        elCont.textContent = "0 centros";
+        markersLayer.clearLayers();
+        markersById.clear();
+      });
+  }
+
+  function applyFilters(){
+    if (!hasActiveFilters()){
+      hideResults();
+      filtered = [];
+      return;
+    }
+
+    showResults();
+
+    const q = normKey(elBus.value);
+    const municipio = normKey(elMun.value);
+    const zona = normKey(elZona.value);
+    const tipo = normKey(elTipo.value);
+    const titularidad = normKey(elTit.value);
+    const horario = normKey(elHor.value);
+    const jornada = normKey(elJor.value);
+
+    filtered = raw.filter(x => {
+      if (q) {
+        const hay = [x.nombre, x.codigo_centro, x.direccion, x.municipio, x.provincia]
+          .map(normKey).join(" | ");
+        if (!hay.includes(q)) return false;
+      }
+      if (municipio && normKey(x.municipio) !== municipio) return false;
+      if (zona && normKey(x.zona) !== zona) return false;
+      if (tipo && normKey(x.tipo_centro) !== tipo) return false;
+      if (titularidad && normKey(x.titularidad) !== titularidad) return false;
+      if (horario && normKey(x.horario) !== horario) return false;
+      if (jornada && normKey(x.jornada_partida) !== jornada) return false;
+      return true;
+    });
+
+    render();
+  }
+
+  function focusCenter(x){
+    if (x.lat == null || x.lng == null) return;
+    const targetZoom = Math.max(map.getZoom(), 15);
+    map.setView([x.lat, x.lng], targetZoom, { animate:true });
+    const m = markersById.get(x.id);
+    if (m) m.openPopup();
+  }
+
+  function render(){
+    elMeta.textContent = `Resultados: ${filtered.length} de ${raw.length}`;
+    elCont.textContent = `${filtered.length} centro${filtered.length !== 1 ? "s" : ""}`;
+
+    elList.innerHTML = "";
+    filtered.slice(0, 1000).forEach(x => {
+      const div = document.createElement("div");
+      div.className = "item center-card";
+      div.setAttribute("role", "button");
+      div.setAttribute("tabindex", "0");
+      div.innerHTML = `
+        <h3>${escapeHtml(x.nombre || "(Sin nombre)")}</h3>
+        <div class="small">
+          <strong>Código:</strong> ${escapeHtml(x.codigo_centro || "-")} ·
+          <strong>Municipio:</strong> ${escapeHtml(x.municipio || "-")} ·
+          <strong>Zona:</strong> ${escapeHtml(x.zona || "-")}<br>
+          <strong>Tipo:</strong> ${escapeHtml(x.tipo_centro || "-")} ·
+          <strong>Titularidad:</strong> ${escapeHtml(x.titularidad || "-")}<br>
+          <strong>Horario:</strong> ${escapeHtml(x.horario || "-")} ·
+          <strong>Jornada:</strong> ${escapeHtml(x.jornada_partida || "-")}
+        </div>
+        <div class="tagline">${escapeHtml(x.direccion || "")}</div>
+      `;
+
+      div.addEventListener("click", () => focusCenter(x));
+      div.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          focusCenter(x);
+        }
+      });
+
+      elList.appendChild(div);
+    });
+
+    markersLayer.clearLayers();
+    markersById.clear();
+
+    const points = [];
+    filtered.forEach(x => {
+      if (x.lat == null || x.lng == null) return;
+
+      const tipoTxt = norm(x.tipo_centro);
+      const color = tipoColorMap.get(tipoTxt) || "#64748b";
+
+      const m = L.marker([x.lat, x.lng], { icon: iconPorColor(color) }).bindPopup(`
+        <strong>${escapeHtml(x.nombre || "")}</strong><br>
+        ${escapeHtml(x.direccion || "")}<br>
+        <strong>Municipio:</strong> ${escapeHtml(x.municipio || "-")}<br>
+        <strong>Zona:</strong> ${escapeHtml(x.zona || "-")}<br>
+        <strong>Tipo:</strong> ${escapeHtml(x.tipo_centro || "-")}<br>
+        <strong>Titularidad:</strong> ${escapeHtml(x.titularidad || "-")}<br>
+        <strong>Horario:</strong> ${escapeHtml(x.horario || "-")}<br>
+        <strong>Jornada:</strong> ${escapeHtml(x.jornada_partida || "-")}
+      `);
+
+      if (x.id) markersById.set(x.id, m);
+
+      m.addTo(markersLayer);
+      points.push([x.lat, x.lng]);
+    });
+
+    if (points.length) {
+      map.fitBounds(L.latLngBounds(points).pad(0.15));
+    }
+  }
+
+  loadCSV(true);
+</script>
+</body>
+</html>
