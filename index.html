@@ -43,6 +43,7 @@
       margin:0;
       font-size:1.6rem;
       font-weight:700;
+      line-height:1.2;
     }
 
     .campaign-wrap{
@@ -131,7 +132,7 @@
     }
 
     .carousel-empty{
-      padding:14px 16px;
+      padding:18px 16px;
       color:#555;
       font-size:.95rem;
     }
@@ -160,6 +161,10 @@
       padding:10px 16px;
       border-radius:999px;
       box-shadow:0 2px 6px rgba(214,0,0,.25);
+    }
+
+    .delegados-btn:hover{
+      background:#b90000;
     }
 
     .summary{
@@ -237,9 +242,17 @@
       color:#fff;
     }
 
+    .btn-primary:hover{
+      background:#b90000;
+    }
+
     .btn-secondary{
       background:#eef1f5;
       color:#333;
+    }
+
+    .btn-secondary:hover{
+      background:#dde3ea;
     }
 
     #map{
@@ -251,29 +264,47 @@
     }
 
     .results-list{
-      margin-top:14px;
-      max-height:300px;
-      overflow:auto;
+      margin-top:20px;
+      max-height:none;
+      overflow:visible;
       border-top:1px solid #eceff3;
-      padding-top:12px;
+      padding-top:16px;
+    }
+
+    .results-header{
+      font-size:1rem;
+      font-weight:700;
+      margin-bottom:12px;
+      color:#222;
     }
 
     .result-item{
-      padding:10px 0;
+      padding:16px 0;
       border-bottom:1px solid #f0f2f5;
       font-size:.92rem;
       cursor:pointer;
     }
 
-    .result-item strong{
+    .result-item strong.result-title{
       display:block;
-      margin-bottom:4px;
+      margin-bottom:8px;
       color:#222;
+      font-size:1rem;
     }
 
     .result-meta{
       color:#666;
-      line-height:1.4;
+      line-height:1.6;
+    }
+
+    .result-meta a{
+      color:#d60000;
+      text-decoration:none;
+      word-break:break-word;
+    }
+
+    .result-meta a:hover{
+      text-decoration:underline;
     }
 
     .site-footer{
@@ -315,7 +346,9 @@
       margin:0;
     }
 
-    .footer-col li{ margin-bottom:6px; }
+    .footer-col li{
+      margin-bottom:6px;
+    }
 
     .footer-col a:hover{
       color:#ffffff;
@@ -331,27 +364,49 @@
     }
 
     @media (max-width: 960px){
-      .layout{ grid-template-columns:1fr; }
-      #map{ height:60vh; min-height:420px; }
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      #map{
+        height:60vh;
+        min-height:420px;
+      }
     }
 
     @media (max-width: 900px){
-      .footer-inner{ grid-template-columns:1fr 1fr; }
+      .footer-inner{
+        grid-template-columns:1fr 1fr;
+      }
     }
 
     @media (max-width: 700px){
-      header{ padding:12px 14px; }
-      header img{ height:44px; }
-      header h1{ font-size:1.2rem; }
-      .slide img{ max-height:180px; }
+      header{
+        padding:12px 14px;
+      }
+
+      header img{
+        height:44px;
+      }
+
+      header h1{
+        font-size:1.2rem;
+      }
+
+      .slide img{
+        max-height:180px;
+      }
     }
 
     @media (max-width: 600px){
-      .footer-inner{ grid-template-columns:1fr; }
+      .footer-inner{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
 <body>
+
   <header>
     <img src="img/feccooex.png" alt="FECCOOEx">
     <h1>Centros Educativos de Extremadura</h1>
@@ -379,28 +434,62 @@
 
         <div class="filters">
           <div class="filter-group">
-            <label for="searchInput">Buscar centro</label>
-            <input type="text" id="searchInput" placeholder="Nombre del centro, localidad...">
+            <label for="searchNombre">Nombre del centro</label>
+            <input type="text" id="searchNombre" placeholder="Nombre del centro">
+          </div>
+
+          <div class="filter-group">
+            <label for="searchCodigo">Código de centro</label>
+            <input type="text" id="searchCodigo" placeholder="Código del centro">
+          </div>
+
+          <div class="filter-group">
+            <label for="titularidadFilter">Titularidad</label>
+            <select id="titularidadFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="tipoCentroFilter">Tipo de centro</label>
+            <select id="tipoCentroFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="etapasFilter">Etapas</label>
+            <select id="etapasFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="dificilFilter">Difícil desempeño</label>
+            <select id="dificilFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="zonaFilter">Zona</label>
+            <select id="zonaFilter">
+              <option value="">Seleccionar</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="municipioFilter">Municipio</label>
+            <select id="municipioFilter">
+              <option value="">Seleccionar</option>
+            </select>
           </div>
 
           <div class="filter-group">
             <label for="provinciaFilter">Provincia</label>
-            <select id="provinciaFilter"><option value="">Todas</option></select>
-          </div>
-
-          <div class="filter-group">
-            <label for="localidadFilter">Localidad</label>
-            <select id="localidadFilter"><option value="">Todas</option></select>
-          </div>
-
-          <div class="filter-group">
-            <label for="tipoFilter">Tipo / naturaleza</label>
-            <select id="tipoFilter"><option value="">Todos</option></select>
-          </div>
-
-          <div class="filter-group">
-            <label for="etapaFilter">Etapa / enseñanzas</label>
-            <select id="etapaFilter"><option value="">Todas</option></select>
+            <select id="provinciaFilter">
+              <option value="">Seleccionar</option>
+            </select>
           </div>
 
           <div class="filter-actions">
@@ -408,12 +497,11 @@
             <button class="btn-secondary" id="resetBtn" type="button">Limpiar</button>
           </div>
         </div>
-
-        <div class="results-list" id="resultsList"></div>
       </aside>
 
       <section class="panel">
         <div id="map"></div>
+        <div class="results-list" id="resultsList"></div>
       </section>
     </div>
   </main>
@@ -478,11 +566,15 @@
     const summaryBox = document.getElementById("summaryBox");
     const resultsList = document.getElementById("resultsList");
 
-    const searchInput = document.getElementById("searchInput");
+    const searchNombre = document.getElementById("searchNombre");
+    const searchCodigo = document.getElementById("searchCodigo");
+    const titularidadFilter = document.getElementById("titularidadFilter");
+    const tipoCentroFilter = document.getElementById("tipoCentroFilter");
+    const etapasFilter = document.getElementById("etapasFilter");
+    const dificilFilter = document.getElementById("dificilFilter");
+    const zonaFilter = document.getElementById("zonaFilter");
+    const municipioFilter = document.getElementById("municipioFilter");
     const provinciaFilter = document.getElementById("provinciaFilter");
-    const localidadFilter = document.getElementById("localidadFilter");
-    const tipoFilter = document.getElementById("tipoFilter");
-    const etapaFilter = document.getElementById("etapaFilter");
     const applyBtn = document.getElementById("applyBtn");
     const resetBtn = document.getElementById("resetBtn");
 
@@ -519,8 +611,18 @@
     }
 
     function parseCSV(text) {
-      const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim() !== "");
+      let cleanText = text.replace(/\r/g, "").trim();
+
+      if (
+        cleanText.includes("\\n") &&
+        cleanText.split("\n").length === 1
+      ) {
+        cleanText = cleanText.replace(/\\n/g, "\n");
+      }
+
+      const lines = cleanText.split("\n").filter(l => l.trim() !== "");
       if (!lines.length) return [];
+
       const headers = splitCSVLine(lines[0]).map(h => h.trim());
 
       return lines.slice(1).map(line => {
@@ -531,40 +633,10 @@
       });
     }
 
-    function normalizeKey(str) {
-      return (str || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, "")
-        .replace(/[^a-z0-9]/g, "");
-    }
-
-    function pickValue(row, candidates) {
-      const keys = Object.keys(row);
-      const normMap = {};
-      keys.forEach(k => normMap[normalizeKey(k)] = row[k]);
-
-      for (const candidate of candidates) {
-        const val = normMap[normalizeKey(candidate)];
-        if (val !== undefined && val !== "") return val;
-      }
-      return "";
-    }
-
-    function toNumber(value) {
-      if (!value) return NaN;
-      return Number(String(value).trim().replace(",", "."));
-    }
-
     function uniqueSorted(values) {
       return [...new Set(values.filter(Boolean))].sort((a, b) =>
         a.localeCompare(b, "es", { sensitivity: "base" })
       );
-    }
-
-    function normBool(v) {
-      return ["1", "true", "si", "sí", "x", "ok"].includes((v || "").toLowerCase().trim());
     }
 
     function escapeHtml(str) {
@@ -576,39 +648,24 @@
         .replaceAll("'", "&#039;");
     }
 
-    function initMap() {
-      map = L.map("map").setView([39.0, -6.0], 8);
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap"
-      }).addTo(map);
-
-      markersLayer = L.layerGroup().addTo(map);
+    function normalizeAssetPath(path) {
+      const p = String(path || "").trim();
+      if (!p) return "";
+      if (/^https?:\/\//i.test(p)) return p;
+      return p.replace(/^\/+/, "");
     }
 
-    function centerToModel(row) {
-      return {
-        raw: row,
-        nombre: pickValue(row, ["centro", "nombre", "denominacion", "denominación"]),
-        provincia: pickValue(row, ["provincia"]),
-        localidad: pickValue(row, ["localidad", "municipio", "poblacion", "población"]),
-        tipo: pickValue(row, ["tipo", "naturaleza", "caracter", "carácter"]),
-        etapa: pickValue(row, ["etapa", "ensenanzas", "enseñanzas", "nivel"]),
-        direccion: pickValue(row, ["direccion", "dirección", "domicilio"]),
-        telefono: pickValue(row, ["telefono", "teléfono", "tlf"]),
-        email: pickValue(row, ["email", "correo", "correoelectronico"]),
-        web: pickValue(row, ["web", "url", "paginaweb", "páginaweb"]),
-        lat: toNumber(pickValue(row, ["lat", "latitude", "latitud", "y"])),
-        lng: toNumber(pickValue(row, ["lng", "lon", "longitud", "longitude", "x"]))
-      };
+    function normBool(v) {
+      return ["1", "true", "si", "sí", "x", "ok"].includes((v || "").toLowerCase().trim());
     }
 
-    function fillSelect(select, values, defaultText) {
+    function fillSelect(select, values) {
+      const currentValue = select.value;
       select.innerHTML = "";
+
       const first = document.createElement("option");
       first.value = "";
-      first.textContent = defaultText;
+      first.textContent = "Seleccionar";
       select.appendChild(first);
 
       values.forEach(v => {
@@ -617,65 +674,101 @@
         option.textContent = v;
         select.appendChild(option);
       });
+
+      if (values.includes(currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
+    function centerToModel(row) {
+      return {
+        raw: row,
+        nombre: row.nombre || "",
+        codigo: row.codigo_centro || "",
+        titularidad: row.titularidad || "",
+        tipoCentro: row.tipo_centro || "",
+        etapas: row.etapas || "",
+        dificil: row["dificil_desempeño"] || row["dificil_desempeno"] || "",
+        zona: row.zona || "",
+        direccion: row.direccion || "",
+        cp: row.cp || "",
+        municipio: row.municipio || "",
+        provincia: row.provincia || "",
+        telefono: row.telefono || "",
+        fax: row.fax || "",
+        email: row.email || "",
+        web: row.web || "",
+        horario: row.horario || "",
+        jornadaPartida: row.jornada_partida || "",
+        lat: Number(String(row.lat || "").replace(",", ".")),
+        lng: Number(String(row.lng || "").replace(",", "."))
+      };
     }
 
     function populateFilters(data) {
-      fillSelect(provinciaFilter, uniqueSorted(data.map(d => d.provincia)), "Todas");
-      fillSelect(localidadFilter, uniqueSorted(data.map(d => d.localidad)), "Todas");
-      fillSelect(tipoFilter, uniqueSorted(data.map(d => d.tipo)), "Todos");
-      fillSelect(etapaFilter, uniqueSorted(data.map(d => d.etapa)), "Todas");
+      fillSelect(titularidadFilter, uniqueSorted(data.map(d => d.titularidad)));
+      fillSelect(tipoCentroFilter, uniqueSorted(data.map(d => d.tipoCentro)));
+      fillSelect(etapasFilter, uniqueSorted(data.map(d => d.etapas)));
+      fillSelect(dificilFilter, uniqueSorted(data.map(d => d.dificil)));
+      fillSelect(zonaFilter, uniqueSorted(data.map(d => d.zona)));
+      fillSelect(municipioFilter, uniqueSorted(data.map(d => d.municipio)));
+      fillSelect(provinciaFilter, uniqueSorted(data.map(d => d.provincia)));
     }
 
     function matchesFilter(center) {
-      const q = searchInput.value.trim().toLowerCase();
+      const nombre = searchNombre.value.trim().toLowerCase();
+      const codigo = searchCodigo.value.trim().toLowerCase();
+      const titularidad = titularidadFilter.value;
+      const tipoCentro = tipoCentroFilter.value;
+      const etapas = etapasFilter.value;
+      const dificil = dificilFilter.value;
+      const zona = zonaFilter.value;
+      const municipio = municipioFilter.value;
       const provincia = provinciaFilter.value;
-      const localidad = localidadFilter.value;
-      const tipo = tipoFilter.value;
-      const etapa = etapaFilter.value;
 
-      const hayTexto = !q || [
-        center.nombre,
-        center.localidad,
-        center.provincia,
-        center.tipo,
-        center.etapa,
-        center.direccion
-      ].join(" ").toLowerCase().includes(q);
+      const okNombre = !nombre || center.nombre.toLowerCase().includes(nombre);
+      const okCodigo = !codigo || center.codigo.toLowerCase().includes(codigo);
+      const okTitularidad = !titularidad || center.titularidad === titularidad;
+      const okTipoCentro = !tipoCentro || center.tipoCentro === tipoCentro;
+      const okEtapas = !etapas || center.etapas === etapas;
+      const okDificil = !dificil || center.dificil === dificil;
+      const okZona = !zona || center.zona === zona;
+      const okMunicipio = !municipio || center.municipio === municipio;
+      const okProvincia = !provincia || center.provincia === provincia;
 
-      return hayTexto &&
-        (!provincia || center.provincia === provincia) &&
-        (!localidad || center.localidad === localidad) &&
-        (!tipo || center.tipo === tipo) &&
-        (!etapa || center.etapa === etapa);
+      return (
+        okNombre &&
+        okCodigo &&
+        okTitularidad &&
+        okTipoCentro &&
+        okEtapas &&
+        okDificil &&
+        okZona &&
+        okMunicipio &&
+        okProvincia
+      );
     }
 
     function popupHtml(center) {
       const webHtml = center.web
         ? `<div><strong>Web:</strong> <a href="${escapeHtml(center.web)}" target="_blank" rel="noopener noreferrer">${escapeHtml(center.web)}</a></div>`
-        : "";
-
-      const emailHtml = center.email
-        ? `<div><strong>Email:</strong> ${escapeHtml(center.email)}</div>`
-        : "";
-
-      const telHtml = center.telefono
-        ? `<div><strong>Teléfono:</strong> ${escapeHtml(center.telefono)}</div>`
-        : "";
-
-      const dirHtml = center.direccion
-        ? `<div><strong>Dirección:</strong> ${escapeHtml(center.direccion)}</div>`
-        : "";
+        : `<div><strong>Web:</strong> -</div>`;
 
       return `
-        <div style="min-width:220px; line-height:1.45;">
+        <div style="min-width:240px; line-height:1.45;">
           <div style="font-weight:700; margin-bottom:6px;">${escapeHtml(center.nombre || "Centro educativo")}</div>
-          <div><strong>Localidad:</strong> ${escapeHtml(center.localidad || "-")}</div>
+          <div><strong>Código:</strong> ${escapeHtml(center.codigo || "-")}</div>
+          <div><strong>Titularidad:</strong> ${escapeHtml(center.titularidad || "-")}</div>
+          <div><strong>Tipo:</strong> ${escapeHtml(center.tipoCentro || "-")}</div>
+          <div><strong>Etapas:</strong> ${escapeHtml(center.etapas || "-")}</div>
+          <div><strong>Difícil desempeño:</strong> ${escapeHtml(center.dificil || "-")}</div>
+          <div><strong>Zona:</strong> ${escapeHtml(center.zona || "-")}</div>
+          <div><strong>Dirección:</strong> ${escapeHtml(center.direccion || "-")}</div>
+          <div><strong>Municipio:</strong> ${escapeHtml(center.municipio || "-")}</div>
           <div><strong>Provincia:</strong> ${escapeHtml(center.provincia || "-")}</div>
-          <div><strong>Tipo:</strong> ${escapeHtml(center.tipo || "-")}</div>
-          <div><strong>Etapa:</strong> ${escapeHtml(center.etapa || "-")}</div>
-          ${dirHtml}
-          ${telHtml}
-          ${emailHtml}
+          <div><strong>Teléfono:</strong> ${escapeHtml(center.telefono || "-")}</div>
+          <div><strong>Fax:</strong> ${escapeHtml(center.fax || "-")}</div>
+          <div><strong>Email:</strong> ${escapeHtml(center.email || "-")}</div>
           ${webHtml}
         </div>
       `;
@@ -684,26 +777,56 @@
     function renderList(data) {
       resultsList.innerHTML = "";
 
+      const header = document.createElement("div");
+      header.className = "results-header";
+      header.textContent = "Resultados";
+      resultsList.appendChild(header);
+
       if (!data.length) {
-        resultsList.innerHTML = `<div class="result-item"><strong>Sin resultados</strong><div class="result-meta">No hay centros que coincidan con los filtros aplicados.</div></div>`;
+        const empty = document.createElement("div");
+        empty.className = "result-item";
+        empty.innerHTML = `
+          <strong class="result-title">Sin resultados</strong>
+          <div class="result-meta">
+            No hay centros que coincidan con los filtros aplicados.
+          </div>
+        `;
+        resultsList.appendChild(empty);
         return;
       }
 
-      data.slice(0, 100).forEach(center => {
+      data.forEach(center => {
         const div = document.createElement("div");
         div.className = "result-item";
+
+        const webHtml = center.web
+          ? `<a href="${escapeHtml(center.web)}" target="_blank" rel="noopener noreferrer">${escapeHtml(center.web)}</a>`
+          : "-";
+
         div.innerHTML = `
-          <strong>${escapeHtml(center.nombre || "Centro educativo")}</strong>
+          <strong class="result-title">${escapeHtml(center.nombre || "Centro educativo")}</strong>
           <div class="result-meta">
-            ${escapeHtml(center.localidad || "-")} · ${escapeHtml(center.provincia || "-")}<br>
-            ${escapeHtml(center.tipo || "-")} · ${escapeHtml(center.etapa || "-")}
+            <strong>Código del centro:</strong> ${escapeHtml(center.codigo || "-")}<br>
+            <strong>Titularidad:</strong> ${escapeHtml(center.titularidad || "-")}<br>
+            <strong>Tipo de centro:</strong> ${escapeHtml(center.tipoCentro || "-")}<br>
+            <strong>Etapas:</strong> ${escapeHtml(center.etapas || "-")}<br>
+            <strong>Difícil desempeño:</strong> ${escapeHtml(center.dificil || "-")}<br>
+            <strong>Dirección:</strong> ${escapeHtml(center.direccion || "-")}<br>
+            <strong>Municipio:</strong> ${escapeHtml(center.municipio || "-")}<br>
+            <strong>Provincia:</strong> ${escapeHtml(center.provincia || "-")}<br>
+            <strong>Teléfono:</strong> ${escapeHtml(center.telefono || "-")}<br>
+            <strong>Fax:</strong> ${escapeHtml(center.fax || "-")}<br>
+            <strong>Email:</strong> ${escapeHtml(center.email || "-")}<br>
+            <strong>Web:</strong> ${webHtml}
           </div>
         `;
+
         div.addEventListener("click", () => {
           if (!Number.isNaN(center.lat) && !Number.isNaN(center.lng)) {
             map.setView([center.lat, center.lng], 14);
           }
         });
+
         resultsList.appendChild(div);
       });
     }
@@ -714,6 +837,7 @@
 
       data.forEach(center => {
         if (Number.isNaN(center.lat) || Number.isNaN(center.lng)) return;
+
         const marker = L.marker([center.lat, center.lng]);
         marker.bindPopup(popupHtml(center));
         marker.addTo(markersLayer);
@@ -738,6 +862,47 @@
       renderList(filteredCenters);
     }
 
+    function initMap() {
+      map = L.map("map").setView([39.0, -6.0], 8);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    function applyBannerPosition() {
+      const elTrack = document.getElementById("carouselTrack");
+      const elDots = document.getElementById("carouselDots");
+      elTrack.style.transform = `translateX(${-bannerIndex * 100}%)`;
+      [...elDots.children].forEach((d, i) => d.classList.toggle("active", i === bannerIndex));
+    }
+
+    function goToBanner(i, userAction = false) {
+      if (!bannerItems.length) return;
+      bannerIndex = (i + bannerItems.length) % bannerItems.length;
+      applyBannerPosition();
+      if (userAction) restartBannerAuto();
+    }
+
+    function stopBannerAuto() {
+      if (bannerTimer) {
+        clearInterval(bannerTimer);
+        bannerTimer = null;
+      }
+    }
+
+    function startBannerAuto() {
+      stopBannerAuto();
+      bannerTimer = setInterval(() => goToBanner(bannerIndex + 1, false), 5000);
+    }
+
+    function restartBannerAuto() {
+      if (bannerItems.length > 1) startBannerAuto();
+    }
+
     function buildCarousel(items) {
       const elEmpty = document.getElementById("carouselEmpty");
       const elTrack = document.getElementById("carouselTrack");
@@ -754,9 +919,12 @@
         const slide = document.createElement("div");
         slide.className = "slide";
 
-        const imgHtml = `<img src="${item.imagen}" alt="${item.alt || "Banner"}" loading="lazy">`;
-        slide.innerHTML = item.enlace
-          ? `<a href="${item.enlace}" target="_blank" rel="noopener noreferrer">${imgHtml}</a>`
+        const imgPath = normalizeAssetPath(item.imagen);
+        const imgHtml = `<img src="${imgPath}" alt="${escapeHtml(item.alt || "Banner")}" loading="lazy">`;
+
+        const enlace = String(item.enlace || "").trim();
+        slide.innerHTML = enlace
+          ? `<a href="${escapeHtml(enlace)}" target="_blank" rel="noopener noreferrer">${imgHtml}</a>`
           : imgHtml;
 
         elTrack.appendChild(slide);
@@ -772,44 +940,16 @@
       elEmpty.style.display = "none";
       elTrack.style.display = "flex";
       elDots.style.display = multi ? "flex" : "none";
-      btnPrev.style.display = multi ? "flex" : "none";
-      btnNext.style.display = multi ? "flex" : "none";
-
-      applyBannerPosition();
+      btnPrev.style.display = multi ? "flex" : "flex";
+      btnNext.style.display = multi ? "flex" : "flex";
 
       btnPrev.onclick = () => goToBanner(bannerIndex - 1, true);
       btnNext.onclick = () => goToBanner(bannerIndex + 1, true);
 
-      if (multi) startBannerAuto();
-    }
-
-    function applyBannerPosition() {
-      const elTrack = document.getElementById("carouselTrack");
-      const elDots = document.getElementById("carouselDots");
-      elTrack.style.transform = `translateX(${-bannerIndex * 100}%)`;
-      [...elDots.children].forEach((d, i) => d.classList.toggle("active", i === bannerIndex));
-    }
-
-    function goToBanner(i, userAction = false) {
-      bannerIndex = (i + bannerItems.length) % bannerItems.length;
       applyBannerPosition();
-      if (userAction) restartBannerAuto();
-    }
 
-    function startBannerAuto() {
-      stopBannerAuto();
-      bannerTimer = setInterval(() => goToBanner(bannerIndex + 1, false), 5000);
-    }
-
-    function stopBannerAuto() {
-      if (bannerTimer) {
-        clearInterval(bannerTimer);
-        bannerTimer = null;
-      }
-    }
-
-    function restartBannerAuto() {
-      if (bannerItems.length > 1) startBannerAuto();
+      if (multi) startBannerAuto();
+      else stopBannerAuto();
     }
 
     function loadBanners() {
@@ -820,8 +960,12 @@
         })
         .then(text => {
           const rows = parseCSV(text);
+
           const items = rows
-            .filter(r => normBool(r.activo || "1"))
+            .filter(r => {
+              const activo = Object.prototype.hasOwnProperty.call(r, "activo") ? r.activo : "si";
+              return normBool(activo);
+            })
             .sort((a, b) => Number(a.orden || 999) - Number(b.orden || 999));
 
           if (!items.length) {
@@ -831,7 +975,8 @@
 
           buildCarousel(items);
         })
-        .catch(() => {
+        .catch(err => {
+          console.error(err);
           document.getElementById("carouselEmpty").textContent = "No se ha podido cargar el banner.";
         });
     }
@@ -848,25 +993,47 @@
           populateFilters(allCenters);
           applyFilters();
         })
-        .catch(() => {
+        .catch(err => {
+          console.error(err);
           summaryBox.textContent = "Error al cargar centros.csv";
-          resultsList.innerHTML = `<div class="result-item"><strong>Error</strong><div class="result-meta">Revisa que centros.csv esté en la raíz del repositorio y que incluya coordenadas.</div></div>`;
+          resultsList.innerHTML = `
+            <div class="results-header">Resultados</div>
+            <div class="result-item">
+              <strong class="result-title">Error</strong>
+              <div class="result-meta">
+                Revisa que centros.csv esté en la raíz del repositorio y que incluya lat y lng.
+              </div>
+            </div>
+          `;
         });
     }
 
     applyBtn.addEventListener("click", applyFilters);
 
     resetBtn.addEventListener("click", () => {
-      searchInput.value = "";
+      searchNombre.value = "";
+      searchCodigo.value = "";
+      titularidadFilter.value = "";
+      tipoCentroFilter.value = "";
+      etapasFilter.value = "";
+      dificilFilter.value = "";
+      zonaFilter.value = "";
+      municipioFilter.value = "";
       provinciaFilter.value = "";
-      localidadFilter.value = "";
-      tipoFilter.value = "";
-      etapaFilter.value = "";
       applyFilters();
     });
 
-    searchInput.addEventListener("keydown", (e) => {
+    searchNombre.addEventListener("keydown", (e) => {
       if (e.key === "Enter") applyFilters();
+    });
+
+    searchCodigo.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") applyFilters();
+    });
+
+    document.getElementById("campaignCarousel").addEventListener("mouseenter", stopBannerAuto);
+    document.getElementById("campaignCarousel").addEventListener("mouseleave", () => {
+      if (bannerItems.length > 1) startBannerAuto();
     });
 
     initMap();
